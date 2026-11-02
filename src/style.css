@@ -22,7 +22,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fluid responsive typography */
+/* Fluid responsive typography with text-wrap */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
 h1 {
   font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
   font-size: clamp(2.5rem, 6.5vw, 5.8rem);
@@ -35,8 +39,16 @@ h2 {
   letter-spacing: -0.03em;
 }
 
+p {
+  text-wrap: pretty;
+}
+
 code, .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.font-fidel {
+  font-family: 'Noto Sans Ethiopic', 'Plus Jakarta Sans', sans-serif;
 }
 
 /* Accessibility: Screen Reader Only */
@@ -71,6 +83,14 @@ code, .font-mono {
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* Architectural subtle grid pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
 /* High-craft backdrop glow */
 .hero-glow {
   background: radial-gradient(
@@ -85,7 +105,7 @@ code, .font-mono {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
@@ -94,7 +114,7 @@ code, .font-mono {
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.2s ease-out forwards;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Selection */

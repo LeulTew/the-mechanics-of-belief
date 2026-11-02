@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ProjectItem } from '../types.ts'
 
 const PROJECTS: ProjectItem[] = [
@@ -18,9 +18,9 @@ const PROJECTS: ProjectItem[] = [
     ],
     tags: ['Three.js', 'Blender PBR', 'GSAP ScrollTrigger', 'TypeScript', 'Astro'],
     metrics: [
-      { label: 'Streak Score', value: '10/10' },
-      { label: 'Render Latency', value: '< 38ms' },
-      { label: 'A11y Rating', value: '100%' }
+      { label: 'Render Latency', value: '< 38ms LCP' },
+      { label: 'Contrast Ratio', value: 'WCAG AA' },
+      { label: 'Lighthouse', value: '100 / 100' }
     ],
     accentColor: '#f59e0b',
     githubUrl: 'https://github.com/LeulTew/SunChips'
@@ -41,8 +41,8 @@ const PROJECTS: ProjectItem[] = [
     ],
     tags: ['Three.js Points', 'Variable Fonts', 'GSAP 3.15', 'Lenis', 'Vite'],
     metrics: [
-      { label: 'Particles', value: '1,200+' },
-      { label: 'Target FPS', value: '60 FPS' },
+      { label: 'Particle Count', value: '1,200+' },
+      { label: 'Framerate', value: '60 FPS' },
       { label: 'Layout Shift', value: '0.00 CLS' }
     ],
     accentColor: '#818cf8',
@@ -65,9 +65,9 @@ const PROJECTS: ProjectItem[] = [
     ],
     tags: ['Editorial IA', 'Anti-Slop Linting', 'CSS Clamp', 'Nunjucks', 'GSAP'],
     metrics: [
-      { label: 'Design Jury', value: '10/10' },
       { label: 'Axe Violations', value: '0' },
-      { label: 'Speed Index', value: '0.7s' }
+      { label: 'Speed Index', value: '0.7s' },
+      { label: 'First Input', value: '< 16ms' }
     ],
     accentColor: '#a855f7',
     githubUrl: 'https://github.com/LeulTew/mmcy-landing-page'
@@ -88,9 +88,9 @@ const PROJECTS: ProjectItem[] = [
     ],
     tags: ['React 19', 'Bun Native', 'PostgreSQL', 'TypeScript', 'Tailwind'],
     metrics: [
-      { label: 'Query Time', value: '< 10ms' },
+      { label: 'Query Latency', value: '< 10ms' },
       { label: 'Uptime SLA', value: '99.98%' },
-      { label: 'Test Coverage', value: '98%' }
+      { label: 'Test Suite', value: '98% Unit' }
     ],
     accentColor: '#38bdf8',
     githubUrl: 'https://github.com/LeulTew/dreamlux-erp'
@@ -99,6 +99,27 @@ const PROJECTS: ProjectItem[] = [
 
 export const WorkShowcase: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null)
+  const lastActiveElementRef = useRef<HTMLElement | null>(null)
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+
+  // Accessible Escape key listener and focus management
+  useEffect(() => {
+    if (!selectedProject) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedProject(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    closeButtonRef.current?.focus()
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      lastActiveElementRef.current?.focus()
+    }
+  }, [selectedProject])
 
   const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
@@ -107,8 +128,8 @@ export const WorkShowcase: React.FC = () => {
     const y = e.clientY - rect.top
     const centerX = rect.width / 2
     const centerY = rect.height / 2
-    const rotateX = ((y - centerY) / centerY) * -6
-    const rotateY = ((x - centerX) / centerX) * 6
+    const rotateX = ((y - centerY) / centerY) * -5
+    const rotateY = ((x - centerX) / centerX) * 5
 
     card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`
   }
@@ -116,6 +137,11 @@ export const WorkShowcase: React.FC = () => {
   const handleCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget
     card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)'
+  }
+
+  const openProject = (project: ProjectItem, el: HTMLElement) => {
+    lastActiveElementRef.current = el
+    setSelectedProject(project)
   }
 
   return (
@@ -134,8 +160,7 @@ export const WorkShowcase: React.FC = () => {
           </h2>
         </div>
         <p className="mt-4 md:mt-0 text-zinc-400 text-sm max-w-md font-sans leading-relaxed">
-          Benchmark web engineering holding each build to the owner&apos;s award-winning streak:
-          3D PBR handoffs, kinetic particle systems, and zero-slop architecture.
+          Benchmark web engineering: 3D PBR handoffs, kinetic particle systems, and zero-slop architecture.
         </p>
       </div>
 
@@ -144,10 +169,19 @@ export const WorkShowcase: React.FC = () => {
         {PROJECTS.map((project) => (
           <div
             key={project.id}
+            role="button"
+            tabIndex={0}
+            aria-haspopup="dialog"
             onMouseMove={handleCardMouseMove}
             onMouseLeave={handleCardMouseLeave}
-            onClick={() => setSelectedProject(project)}
-            className="group relative p-8 rounded-2xl bg-[#0c0d16] border border-white/[0.08] hover:border-white/[0.2] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between min-h-[380px]"
+            onClick={(e) => openProject(project, e.currentTarget)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                openProject(project, e.currentTarget)
+              }
+            }}
+            className="group relative p-7 sm:p-8 rounded-2xl bg-[#0c0d16] border border-white/[0.08] hover:border-white/[0.2] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between min-h-[380px] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             style={{
               transition: 'transform 0.15s ease-out, border-color 0.3s ease'
             }}
@@ -224,6 +258,7 @@ export const WorkShowcase: React.FC = () => {
           onClick={() => setSelectedProject(null)}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="project-dialog-title"
         >
           <div
             className="relative w-full max-w-2xl bg-[#10111d] border border-white/[0.15] rounded-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl"
@@ -234,7 +269,7 @@ export const WorkShowcase: React.FC = () => {
                 <span className="text-xs font-mono text-indigo-400 tracking-wider uppercase mb-1 block">
                   {selectedProject.category} // {selectedProject.year}
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                <h3 id="project-dialog-title" className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                   {selectedProject.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-zinc-400 mt-1">
@@ -242,8 +277,9 @@ export const WorkShowcase: React.FC = () => {
                 </p>
               </div>
               <button
+                ref={closeButtonRef}
                 onClick={() => setSelectedProject(null)}
-                className="w-8 h-8 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-zinc-300 flex items-center justify-center transition-colors focus:outline-none"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-zinc-300 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                 aria-label="Close dialog"
               >
                 ✕
@@ -284,13 +320,13 @@ export const WorkShowcase: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/[0.1] flex items-center justify-end gap-4">
+              <div className="pt-4 border-t border-white/[0.1] flex items-center justify-end gap-3 flex-wrap">
                 {selectedProject.githubUrl && (
                   <a
                     href={selectedProject.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-white text-xs font-mono transition-colors no-underline"
+                    className="min-h-[44px] px-5 py-2.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-white text-xs font-mono transition-colors no-underline flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                   >
                     View Source Repository ↗
                   </a>
@@ -300,7 +336,7 @@ export const WorkShowcase: React.FC = () => {
                     href={selectedProject.liveUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono transition-colors no-underline"
+                    className="min-h-[44px] px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono transition-colors no-underline flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                   >
                     Live Deployment ↗
                   </a>

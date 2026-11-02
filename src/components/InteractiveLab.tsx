@@ -21,12 +21,12 @@ export const InteractiveLab: React.FC<InteractiveLabProps> = ({
     {
       id: 'gaussian',
       label: 'Gaussian Points',
-      desc: 'Additive Fibonacci point cloud simulating 2026 splat radiance.'
+      desc: 'Additive soft point cloud simulating 2026 Gaussian radiance.'
     },
     {
       id: 'wireframe',
       label: 'Blueprint Raster',
-      desc: 'Laser polygon distribution showing zero non-manifold edges.'
+      desc: 'Laser polygon distribution showing clean manifold geometry.'
     },
     {
       id: 'chrome',
@@ -53,22 +53,23 @@ export const InteractiveLab: React.FC<InteractiveLabProps> = ({
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-4">
               Real-Time Shader &amp; Splat Controls
             </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-8 max-w-xl">
+            <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-8 max-w-xl font-sans">
               Dynamically switch the active WebGL rendering pipeline in the hero viewport above.
               Engineered to sustain a locked 60+ FPS on any PC or phone with zero memory leaks.
             </p>
 
-            {/* Mode Switchers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-8">
+            {/* Mode Switchers (Touch Targets >= 44px & aria-pressed) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
               {modes.map((mode) => {
                 const isActive = currentMode === mode.id
                 return (
                   <button
                     key={mode.id}
                     onClick={() => onModeChange(mode.id)}
-                    className={`text-left p-4 rounded-xl border transition-all duration-200 focus:outline-none ${
+                    aria-pressed={isActive}
+                    className={`min-h-[44px] text-left p-4 rounded-xl border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 cursor-pointer ${
                       isActive
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
+                        ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
                         : 'bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:border-white/[0.2] hover:text-zinc-200'
                     }`}
                   >
@@ -77,7 +78,7 @@ export const InteractiveLab: React.FC<InteractiveLabProps> = ({
                         {mode.label}
                       </span>
                       {isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
                       )}
                     </div>
                     <p className="text-[11px] leading-relaxed text-zinc-400 m-0">{mode.desc}</p>
@@ -95,7 +96,7 @@ export const InteractiveLab: React.FC<InteractiveLabProps> = ({
                   WebGL Telemetry
                 </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  REAL-TIME
+                  LIVE TELEMETRY
                 </span>
               </div>
 

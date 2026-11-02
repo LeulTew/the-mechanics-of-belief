@@ -1,21 +1,45 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { VisualMode, WebGLMetrics } from '../types.ts'
+import heroFallbackStill from '../assets/hero.png'
 
 interface HeroSceneProps {
   mode: VisualMode
   onMetricsUpdate?: (metrics: WebGLMetrics) => void
 }
 
+// Generate a soft radial Gaussian point sprite texture
+function createGaussianTexture(): THREE.Texture {
+  const canvas = document.createElement('canvas')
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)')
+    gradient.addColorStop(0.3, 'rgba(168, 85, 247, 0.8)')
+    gradient.addColorStop(0.7, 'rgba(99, 102, 241, 0.25)')
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 64, 64)
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  return texture
+}
+
 export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   const sceneRef = useRef<{
     renderer: THREE.WebGLRenderer
     scene: THREE.Scene
     camera: THREE.PerspectiveCamera
     mesh: THREE.Mesh
     pointsMesh?: THREE.Points
+    gaussianTexture?: THREE.Texture
     lights: THREE.Light[]
     dispose: () => void
   } | null>(null)
@@ -23,6 +47,11 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+
+    // If reduced-motion is requested, hold the lossless fallback still and skip WebGL
+    if (isReducedMotion) {
+      return
+    }
 
     const width = container.clientWidth
     const height = container.clientHeight
@@ -37,20 +66,21 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     const renderer = new THREE.WebGLRenderer({
       antialias: !isMobile,
       alpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'default' // power-efficient across iGPU/dGPU
     })
     renderer.setSize(width, height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2))
     renderer.toneMapping = THREE.NeutralToneMapping
     renderer.toneMappingExposure = 1.2
+    renderer.domElement.setAttribute('aria-hidden', 'true')
     container.appendChild(renderer.domElement)
 
-    // 3. Geometry based on viewport
+    // 3. Responsive geometry segments
     const tubularSegments = isMobile ? 64 : 128
     const radialSegments = isMobile ? 16 : 32
     const geometry = new THREE.TorusKnotGeometry(9, 2.7, tubularSegments, radialSegments, 2, 3)
 
-    // 4. Primary Material
+    // 4. Primary PBR Material
     const material = new THREE.MeshStandardMaterial({
       color: 0x6366f1,
       roughness: 0.16,
@@ -64,7 +94,7 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     mesh.rotation.y = 0.5
     scene.add(mesh)
 
-    // 5. Gaussian / Particle specimen cloud
+    // 5. Gaussian Splat / Particle specimen cloud with circular soft alpha texture
     const particleCount = isMobile ? 450 : 900
     const particleGeo = new THREE.BufferGeometry()
     const positions = new Float32Array(particleCount * 3)
@@ -79,12 +109,11 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta)
       positions[i * 3 + 2] = radius * Math.cos(phi)
 
-      // Gradient from cobalt to violet to ember
       const t = Math.random()
       if (t < 0.6) {
-        colors[i * 3] = 0.38 + t * 0.2 // R
-        colors[i * 3 + 1] = 0.4 + t * 0.2 // G
-        colors[i * 3 + 2] = 0.95 // B
+        colors[i * 3] = 0.38 + t * 0.2
+        colors[i * 3 + 1] = 0.4 + t * 0.2
+        colors[i * 3 + 2] = 0.95
       } else {
         colors[i * 3] = 0.95
         colors[i * 3 + 1] = 0.6 + (t - 0.6) * 0.5
@@ -95,12 +124,15 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
+    const gaussianTexture = createGaussianTexture()
     const particleMat = new THREE.PointsMaterial({
-      size: isMobile ? 0.35 : 0.45,
+      size: isMobile ? 0.75 : 0.95,
+      map: gaussianTexture,
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
-      blending: THREE.AdditiveBlending
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     })
 
     const pointsMesh = new THREE.Points(particleGeo, particleMat)
@@ -122,18 +154,16 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     fillLight.position.set(0, -25, 20)
     scene.add(fillLight)
 
-    // 7. Mouse & Touch Parallax tracking
+    // 7. Scoped Mouse & Touch Parallax tracking
     let targetRotX = 0
     let targetRotY = 0
-    let mouseX = 0
-    let mouseY = 0
 
     const onPointerMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect()
-      mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1
-      mouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1)
-      targetRotY = mouseX * 0.45
-      targetRotX = mouseY * 0.35
+      const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      const mouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1)
+      targetRotY = Math.max(-0.6, Math.min(0.6, mouseX * 0.45))
+      targetRotX = Math.max(-0.5, Math.min(0.5, mouseY * 0.35))
     }
 
     let touchStartX = 0
@@ -148,48 +178,71 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
       if (e.touches.length > 0) {
         const dx = e.touches[0].clientX - touchStartX
         const dy = e.touches[0].clientY - touchStartY
-        targetRotY += dx * 0.005
-        targetRotX += dy * 0.005
+        targetRotY = Math.max(-0.6, Math.min(0.6, targetRotY + dx * 0.003))
+        targetRotX = Math.max(-0.5, Math.min(0.5, targetRotX + dy * 0.003))
         touchStartX = e.touches[0].clientX
         touchStartY = e.touches[0].clientY
       }
     }
 
-    window.addEventListener('mousemove', onPointerMove, { passive: true })
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    container.addEventListener('mousemove', onPointerMove, { passive: true })
+    container.addEventListener('touchstart', onTouchStart, { passive: true })
+    container.addEventListener('touchmove', onTouchMove, { passive: true })
 
-    // 8. Animation loop & FPS counting
+    // 8. Intersection & Visibility Observers (Halt rendering when offscreen or tab hidden)
+    let isVisible = true
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting
+      },
+      { threshold: 0.05 }
+    )
+    intersectionObserver.observe(container)
+
+    const onVisibilityChange = () => {
+      isVisible = !document.hidden
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    // 9. Delta-Time Frame-Rate Independent Animation loop
     let frameId: number
     let lastTime = performance.now()
     let frameCount = 0
     let lastFpsUpdate = performance.now()
 
-    const animate = (time: number) => {
+    const animate = (currentTime: number) => {
       frameId = requestAnimationFrame(animate)
 
-      // Inertia smoothing
-      mesh.rotation.y += 0.005
-      mesh.rotation.x += 0.003
-      mesh.rotation.y += (targetRotY - mesh.rotation.y * 0.1) * 0.05
-      mesh.rotation.x += (targetRotX - mesh.rotation.x * 0.1) * 0.05
+      if (!isVisible) {
+        lastTime = currentTime
+        return
+      }
+
+      const dt = Math.min((currentTime - lastTime) / 1000, 0.1)
+      lastTime = currentTime
+
+      // Frame-rate independent rotation (radians per second)
+      mesh.rotation.y += 0.35 * dt
+      mesh.rotation.x += 0.2 * dt
+      mesh.rotation.y += (targetRotY - mesh.rotation.y * 0.1) * (2.5 * dt)
+      mesh.rotation.x += (targetRotX - mesh.rotation.x * 0.1) * (2.5 * dt)
 
       // Particle cloud counter-spin
-      pointsMesh.rotation.y -= 0.002
-      pointsMesh.rotation.z += 0.001
+      pointsMesh.rotation.y -= 0.12 * dt
+      pointsMesh.rotation.z += 0.06 * dt
 
-      // Dynamic light orbit
-      keyLight.position.x = 25 * Math.cos(time * 0.0006)
-      keyLight.position.z = 25 * Math.sin(time * 0.0006)
+      // Orbiting key light
+      keyLight.position.x = 25 * Math.cos(currentTime * 0.0006)
+      keyLight.position.z = 25 * Math.sin(currentTime * 0.0006)
 
       renderer.render(scene, camera)
 
-      // FPS tracking
+      // Rolling FPS tracking
       frameCount++
-      if (time - lastFpsUpdate >= 500) {
-        const fps = Math.round((frameCount * 1000) / (time - lastFpsUpdate))
+      if (currentTime - lastFpsUpdate >= 500) {
+        const fps = Math.round((frameCount * 1000) / (currentTime - lastFpsUpdate))
         frameCount = 0
-        lastFpsUpdate = time
+        lastFpsUpdate = currentTime
 
         if (onMetricsUpdate) {
           onMetricsUpdate({
@@ -208,7 +261,7 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
 
     animate(performance.now())
 
-    // 9. Resize observer
+    // 10. Resize observer
     const onResize = () => {
       if (!container) return
       const w = container.clientWidth
@@ -226,18 +279,27 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
       camera,
       mesh,
       pointsMesh,
+      gaussianTexture,
       lights: [ambientLight, keyLight, rimLight, fillLight],
       dispose: () => {
-        window.removeEventListener('mousemove', onPointerMove)
-        window.removeEventListener('touchstart', onTouchStart)
-        window.removeEventListener('touchmove', onTouchMove)
+        container.removeEventListener('mousemove', onPointerMove)
+        container.removeEventListener('touchstart', onTouchStart)
+        container.removeEventListener('touchmove', onTouchMove)
         window.removeEventListener('resize', onResize)
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+        intersectionObserver.disconnect()
         cancelAnimationFrame(frameId)
+
+        // Force WebGL context eviction to avoid browser limits
+        renderer.forceContextLoss()
         renderer.dispose()
         geometry.dispose()
         material.dispose()
         particleGeo.dispose()
         particleMat.dispose()
+        gaussianTexture.dispose()
+        scene.clear()
+
         if (container.contains(renderer.domElement)) {
           container.removeChild(renderer.domElement)
         }
@@ -247,13 +309,23 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     return () => {
       sceneRef.current?.dispose()
     }
-  }, [])
+  }, [isReducedMotion])
 
-  // Dynamic visual mode changes
+  // Dynamic visual mode changes with mat.needsUpdate & scale reset
   useEffect(() => {
     if (!sceneRef.current) return
     const { mesh, pointsMesh } = sceneRef.current
     const mat = mesh.material as THREE.MeshStandardMaterial
+
+    // Reset pointsMesh scale whenever switching modes
+    if (pointsMesh) {
+      if (mode === 'gaussian') {
+        pointsMesh.scale.set(1.4, 1.4, 1.4)
+        pointsMesh.visible = true
+      } else {
+        pointsMesh.scale.set(1.0, 1.0, 1.0)
+      }
+    }
 
     if (mode === 'crystal') {
       mat.wireframe = false
@@ -266,10 +338,6 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
     } else if (mode === 'gaussian') {
       mat.wireframe = false
       mesh.visible = false
-      if (pointsMesh) {
-        pointsMesh.visible = true
-        pointsMesh.scale.set(1.4, 1.4, 1.4)
-      }
     } else if (mode === 'wireframe') {
       mesh.visible = true
       mat.wireframe = true
@@ -285,25 +353,28 @@ export const HeroScene: React.FC<HeroSceneProps> = ({ mode, onMetricsUpdate }) =
       mat.emissive.setHex(0x374151)
       if (pointsMesh) pointsMesh.visible = true
     }
+
+    mat.needsUpdate = true
   }, [mode])
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[440px] md:min-h-[560px] flex items-center justify-center overflow-hidden"
+      className="relative w-full h-full min-h-[380px] sm:min-h-[460px] lg:min-h-[560px] flex items-center justify-center overflow-hidden"
     >
-      {/* 1-Pixel Registration Fallback Still */}
+      {/* 1-Pixel Registration Fallback Still (Zero-Layout Shift & Reduced-Motion Hero) */}
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 pointer-events-none ${
-          isLoaded ? 'opacity-0' : 'opacity-100'
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 pointer-events-none select-none ${
+          isLoaded && !isReducedMotion ? 'opacity-0' : 'opacity-100'
         }`}
-        style={{
-          background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%)'
-        }}
+        aria-hidden={isLoaded && !isReducedMotion ? 'true' : 'false'}
       >
-        <div className="w-48 h-48 rounded-full border border-indigo-500/30 animate-pulse flex items-center justify-center">
-          <span className="text-xs font-mono text-indigo-300">Initializing WebGL...</span>
-        </div>
+        <img
+          src={heroFallbackStill}
+          alt="3D Iridescent Monolith Artwork"
+          className="w-full h-full object-contain max-w-[420px] max-h-[420px] filter drop-shadow-[0_15px_30px_rgba(99,102,241,0.25)]"
+          loading="eager"
+        />
       </div>
     </div>
   )
