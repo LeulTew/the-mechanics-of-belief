@@ -34,7 +34,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'The Conceptual Map',
-              headline: 'A person can know every doctrine and still never  within.',
+              headline: 'A person can know every doctrine and still never pause within.',
               lead: 'You can memorize every prayer, follow every fast, and attend every liturgy while remaining trapped inside the noisy commentary of your own mind.',
               textPos: 'pos-left',
               svgX: 68, svgY: 48,
@@ -46,7 +46,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'The Open Threshold',
-              headline: 'The tradition is the , not the destination.',
+              headline: 'The tradition is the doorway, not the destination.',
               lead: 'The crucial distinction is between the conceptual map and the direct experience—stepping through the stone threshold into living stillness.',
               textPos: 'pos-center-bottom',
               svgX: 50, svgY: 38,
@@ -65,7 +65,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Beyond Mere Rules',
-              headline: 'Christ is a living center of surrender, not merely an .',
+              headline: 'Christ is a living center of surrender, not merely an idea.',
               lead: 'For a sincere believer, prayer is not merely words, fasting (Tsom) is not merely a dietary rule, and prostration (Sigdet) is not merely physical motion.',
               textPos: 'pos-right',
               svgX: 30, svgY: 48,
@@ -77,7 +77,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Resonant Instruments',
-              headline: 'Chant and rhythm reshape how you relate to  and self.',
+              headline: 'Chant and rhythm reshape how you relate to fear and self.',
               lead: 'The bronze Tsenatsel sistrum, Meqwamiya prayer staff, and Kebero drum become instruments for transforming thoughts, desires, and the demanding ego.',
               textPos: 'pos-right',
               svgX: 32, svgY: 49,
@@ -95,7 +95,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Entering in Love',
-              headline: 'When you stop trying to  anything, something changes.',
+              headline: 'When you stop trying to prove anything, something changes.',
               lead: 'Entering a sanctuary out of love rather than self-validation, you stop rehearsing yesterday, stop predicting tomorrow, and let go of controlling every thought.',
               textPos: 'pos-top-left',
               svgX: 66, svgY: 54,
@@ -107,7 +107,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Absorbed Devotion',
-              headline: 'From “me thinking about God” to  stillness.',
+              headline: 'From “me thinking about God” to absorbed stillness.',
               lead: 'The internal commentary weakens and attention stabilizes—a profound shift in awareness that deserves attention before any philosophical debate.',
               textPos: 'pos-left',
               svgX: 66, svgY: 48,
@@ -125,7 +125,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Presence & Motive',
-              headline: 'What does your belief actually do to your own ?',
+              headline: 'What does your belief actually do to your own mind?',
               lead: 'Does it make you more present or more anxious? Is prayer genuine surrender, or performed out of fear? Does fasting loosen impulses or fuel rule-competition?',
               textPos: 'pos-right',
               svgX: 32, svgY: 48,
@@ -137,7 +137,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Softening the Ego',
-              headline: 'Does devotion soften the ego, or  your identity?',
+              headline: 'Does devotion soften the ego, or armor your identity?',
               lead: 'Taking Orthodoxy’s deepest claims seriously means asking whether tradition leads you to love, humility, and silence—or just more mental clutter to defend.',
               textPos: 'pos-right',
               svgX: 31, svgY: 50,
@@ -155,7 +155,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Bypassing the Ego',
-              headline: 'Surrender quiets the mind without  itself.',
+              headline: 'Surrender quiets the mind without fighting itself.',
               lead: 'Forcing your own mind to be silent fails because the mind fights itself. Letting go (“not my will, but Yours”) steps the defensive ego out of the way naturally.',
               textPos: 'pos-left',
               svgX: 64, svgY: 50,
@@ -167,7 +167,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Made One (Theosis)',
-              headline: 'The very word  means “Made One.”',
+              headline: 'The very word Tewahedo means “Made One.”',
               lead: 'Practiced by the desert fathers and Bahtawiyan hermits, the mystical root is Theosis and silent prayer of the heart—where words stop in undivided stillness.',
               textPos: 'pos-center-bottom',
               svgX: 50, svgY: 38,
@@ -185,7 +185,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Frankincense & Fast',
-              headline: 'Embodied practice shuts down the  machine.',
+              headline: 'Embodied practice shuts down the prediction machine.',
               lead: 'Long fasts (Tsom), endless prostrations (Sigdet), and rising clouds of frankincense (Etan) exhaust physical restlessness and anchor awareness in the breath.',
               textPos: 'pos-left',
               svgX: 67, svgY: 52,
@@ -197,7 +197,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'St. Yared’s Zema',
-              headline: 'Ancient frequencies drop the mind into  presence.',
+              headline: 'Ancient frequencies drop the mind into wordless presence.',
               lead: 'The sacred modes of St. Yared’s chants (Zema—Ge’ez, Ezel, and Araray) overwhelm the analytical brain and halt the automatic stream of everyday thoughts.',
               textPos: 'pos-top-left',
               svgX: 66, svgY: 46,
@@ -215,7 +215,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Autocomplete & Fear',
-              headline: 'When held as habit or fear, the doorway becomes a .',
+              headline: 'When held as habit or fear, the doorway becomes a cage.',
               lead: 'Inherited as cultural autocomplete or a fearful tax to avoid punishment and buy heaven, mechanical religion amplifies anxiety and mental noise.',
               textPos: 'pos-right',
               svgX: 31, svgY: 49,
@@ -227,7 +227,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Spiritual Ego',
-              headline: 'Defending the map with  while missing its love.',
+              headline: 'Defending the map with anger while missing its love.',
               lead: 'Obsessed with policing who fasts or dresses right, or projecting God only onto distant books and buildings, dogmatic ego forgets that the Kingdom is within.',
               textPos: 'pos-right',
               svgX: 32, svgY: 49,
@@ -245,7 +245,7 @@ export const ACTS: ActItem[] = [
           moments: [
             {
               label: 'Theosis vs. Trap',
-              headline: 'Surrender and inward stillness over  compliance.',
+              headline: 'Surrender and inward stillness over fearful compliance.',
               lead: 'Across primary drive, sensory engagement, locus of the divine, and cognitive state, the shortcut awakens presence while conditioning breeds division.',
               textPos: 'pos-left',
               svgX: 67, svgY: 49,
@@ -257,7 +257,7 @@ export const ACTS: ActItem[] = [
             },
             {
               label: 'Be Still and Know',
-              headline: '“The Kingdom of God is  you.”',
+              headline: '“The Kingdom of God is within you.”',
               lead: 'Not “leave your faith.” Not “your tradition is false.” Go deeper than the automatic version of it—into the living silence it has pointed toward for centuries.',
               textPos: 'pos-center-bottom',
               svgX: 50, svgY: 38,

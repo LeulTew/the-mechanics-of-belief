@@ -32,6 +32,8 @@
   --gold-bright: #E2C696;
   --hairline: rgba(245, 240, 230, 0.14);
   --hairline-strong: rgba(245, 240, 230, 0.34);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-cine: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body.theme-vellum {
@@ -125,6 +127,196 @@ body {
 button:focus-visible, a:focus-visible {
   outline: 2px solid var(--gold-bright);
   outline-offset: 3px;
+}
+
+/* =========================================================================
+   LAYER 4: IMPECCABLE / AWWWARDS SOTD EDITORIAL TYPOGRAPHY (#story-super)
+   Strict 2-font system (Cormorant Garamond + Plus Jakarta Sans),
+   monochromatic warm alabaster, zero gradient slop, zero coder telemetry.
+   ========================================================================= */
+#story-super {
+  position: fixed;
+  left: clamp(2.5rem, 6vw, 5.5rem);
+  top: 49%;
+  transform: translate3d(0%, -50%, 0);
+  width: min(38vw, 460px);
+  z-index: 25;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  transition:
+    left 880ms var(--ease-cine),
+    top 880ms var(--ease-cine),
+    transform 880ms var(--ease-cine),
+    width 880ms var(--ease-cine);
+  will-change: left, top, transform;
+}
+
+@media (min-width: 901px) {
+  #story-super.pos-left {
+    left: clamp(2.5rem, 6vw, 5.5rem);
+    top: 48%;
+    transform: translate3d(0%, -50%, 0);
+    width: min(38vw, 460px);
+    align-items: flex-start;
+    text-align: left;
+  }
+  #story-super.pos-right {
+    left: 56vw;
+    top: 48%;
+    transform: translate3d(0%, -50%, 0);
+    width: min(38vw, 460px);
+    align-items: flex-start;
+    text-align: left;
+  }
+  #story-super.pos-center-bottom {
+    left: 50vw;
+    top: 74%;
+    transform: translate3d(-50%, -50%, 0);
+    width: min(58vw, 640px);
+    align-items: center;
+    text-align: center;
+  }
+  #story-super.pos-center-bottom .super-body {
+    max-width: 54ch;
+  }
+  #story-super.pos-top-left {
+    left: clamp(2.5rem, 6vw, 5.5rem);
+    top: 38%;
+    transform: translate3d(0%, -50%, 0);
+    width: min(38vw, 460px);
+    align-items: flex-start;
+    text-align: left;
+  }
+  #story-super.pos-bottom-right {
+    left: 55.5vw;
+    top: 58%;
+    transform: translate3d(0%, -50%, 0);
+    width: min(38vw, 460px);
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* Soft atmospheric vignette behind editorial typography — never a hard card */
+#story-super::before {
+  content: '';
+  position: absolute;
+  inset: -3.2rem -3.6rem;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(10, 8, 6, 0.78) 0%,
+    rgba(10, 8, 6, 0.42) 52%,
+    rgba(10, 8, 6, 0) 78%
+  );
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 48px;
+  transition: background 600ms var(--ease-out);
+}
+
+body.theme-vellum #story-super::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(238, 231, 215, 0.88) 0%,
+    rgba(238, 231, 215, 0.52) 52%,
+    rgba(238, 231, 215, 0) 78%
+  );
+}
+
+/* Restrained Monograph Chapter Index */
+.chapter-whisper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 400;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-muted);
+  cursor: default;
+  transition: color 220ms var(--ease-out);
+}
+
+.chapter-whisper .geez-num {
+  font-family: var(--font-fidel);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.96rem;
+  letter-spacing: 0;
+  color: var(--ink-secondary);
+  line-height: 1;
+}
+
+.chapter-whisper .chapter-rule {
+  width: 24px;
+  height: 1px;
+  background: var(--hairline-strong);
+  transition: width 320ms var(--ease-out), background-color 220ms ease;
+}
+
+.super-text-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+}
+
+/* High-Contrast Editorial Display Serif */
+.super-headline {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.35rem, 3.85vw, 3.75rem);
+  line-height: 1.04;
+  letter-spacing: -0.024em;
+  font-optical-sizing: auto;
+  text-wrap: balance;
+  color: var(--ink);
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.58);
+}
+
+body.theme-vellum .super-headline {
+  text-shadow: 0 1px 18px rgba(255, 252, 245, 0.55);
+}
+
+/* Clean Humanist Sans Body Copy (43ch measure ceiling, warm tinted secondary ink) */
+.super-body {
+  font-family: var(--font-sans);
+  font-size: clamp(0.94rem, 1.03vw, 1.04rem);
+  line-height: 1.68;
+  letter-spacing: -0.005em;
+  color: var(--ink-secondary);
+  font-weight: 300;
+  max-width: 43ch;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.65);
+  will-change: transform, opacity, filter;
+}
+
+body.theme-vellum .super-body {
+  font-weight: 400;
+  text-shadow: none;
+}
+
+@media (max-width: 900px) {
+  #story-super {
+    left: 1.25rem !important;
+    right: 1.25rem !important;
+    top: 4.8rem !important;
+    transform: none !important;
+    width: auto !important;
+    gap: 0.65rem;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  .super-headline {
+    font-size: clamp(1.75rem, 6.2vw, 2.25rem);
+  }
+  .super-body {
+    font-size: 0.88rem;
+    line-height: 1.54;
+  }
 }
 
 /* Skip Link */
