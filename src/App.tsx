@@ -3,13 +3,12 @@ import { SanctuaryViewport } from './components/SanctuaryViewport.tsx'
 import { CameraRig3D } from './components/CameraRig3D.tsx'
 import { SacredGeometryStage } from './components/SacredGeometryStage.tsx'
 import { StorySuper } from './components/StorySuper.tsx'
-import { DirectorHud } from './components/DirectorHud.tsx'
 import { FilmTimeline } from './components/FilmTimeline.tsx'
 import { ManuscriptSheet } from './components/ManuscriptSheet.tsx'
 import { ZeroHeightNav } from './components/ZeroHeightNav.tsx'
 import { useSpringScroll } from './hooks/useSpringScroll.ts'
 import { useZemaAudio } from './hooks/useZemaAudio.ts'
-import { ThemeMode, WebGLMetrics } from './types.ts'
+import { ThemeMode } from './types.ts'
 import { ACTS } from './data/actsData.ts'
 
 const BlenderSpecimen3D = lazy(() =>
@@ -20,13 +19,6 @@ export function App() {
   const [theme, setTheme] = useState<ThemeMode>('sanctuary')
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isBlenderModalOpen, setIsBlenderModalOpen] = useState(false)
-  const [metrics, setMetrics] = useState<WebGLMetrics>({
-    fps: 60,
-    drsResolution: 1.0,
-    drawCalls: 2,
-    triangles: 8192,
-    particleCount: 920
-  })
 
   // Sync theme with document.body class for global CSS variables
   useEffect(() => {
@@ -43,8 +35,6 @@ export function App() {
     walkZ,
     deepZoom,
     onPointerDown,
-    resetLook,
-    toggleDeepZoom,
     scrollToAct
   } = useSpringScroll()
 
@@ -77,22 +67,24 @@ export function App() {
       {/* Accessible Skip Link */}
       <a
         href="#film-timeline"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-gold-bright focus:text-neutral-950 focus:font-mono focus:text-xs focus:rounded-md focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-gold-bright focus:text-neutral-950 focus:font-sans focus:font-medium focus:text-xs focus:rounded-md focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-amber-400"
       >
         Skip to navigation and timeline
       </a>
 
-      {/* Zero-Height Top Wayfinding & Navigation */}
+      {/* Museum-Grade Architectural Navigation Masthead */}
       <ZeroHeightNav
         onOpenSheet={() => setIsSheetOpen(true)}
         isAudioPlaying={isAudioPlaying}
         onToggleAudio={toggleAudio}
+        currentZemaMode={currentZemaMode}
+        onSelectZemaMode={setZemaMode}
         theme={theme}
         onToggleTheme={toggleTheme}
         onToggleBlenderModal={() => setIsBlenderModalOpen(true)}
       />
 
-      {/* WebGL 3D Raymarching & Gaussian Radiance Viewport */}
+      {/* WebGL 3D Raymarching & Volumetric Cavern Viewport */}
       <SanctuaryViewport
         progress={progress}
         lookYaw={lookYaw}
@@ -101,10 +93,9 @@ export function App() {
         walkZ={walkZ}
         deepZoom={deepZoom}
         theme={theme}
-        onMetricsUpdate={setMetrics}
       />
 
-      {/* 3D Perspective CSS Camera Rig & Orbital Shrines */}
+      {/* 3D Perspective CSS Camera Rig with Architectural Bays */}
       <CameraRig3D
         progress={progress}
         lookYaw={lookYaw}
@@ -117,24 +108,10 @@ export function App() {
       {/* Sacred Geometry Stage (Anime.js + SVG) */}
       <SacredGeometryStage activeActIndex={activeActIndex} progress={progress} />
 
-      {/* ReactBits Kinetic Editorial Typography & Ciphers */}
+      {/* Authentic Cultural Typography & Monograph Moments */}
       <StorySuper activeActIndex={activeActIndex} activeMomentIndex={activeMomentIndex} />
 
-      {/* Cinema Director HUD */}
-      <DirectorHud
-        deepZoom={deepZoom}
-        onToggleDeepZoom={toggleDeepZoom}
-        onResetLook={resetLook}
-        lookYaw={lookYaw}
-        lookPitch={lookPitch}
-        walkX={walkX}
-        walkZ={walkZ}
-        currentZemaMode={currentZemaMode}
-        onSelectZemaMode={setZemaMode}
-        metrics={metrics}
-      />
-
-      {/* Continuous Bottom Cinematic Film Scrubber */}
+      {/* Continuous Bottom Cinematic Scrubber */}
       <FilmTimeline
         progress={progress}
         activeActIndex={activeActIndex}

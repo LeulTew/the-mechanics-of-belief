@@ -79,10 +79,10 @@ export const ManuscriptSheet: React.FC<ManuscriptSheetProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-black/50 backdrop-blur-sm">
           <div>
-            <span className="text-[10px] font-mono tracking-widest text-gold-bright uppercase">
+            <span className="text-[11px] font-sans font-medium tracking-[0.2em] text-gold-bright uppercase">
               ETHIOPIAN CONTEMPLATIVE ARCHITECTURE
             </span>
-            <h2 id="manuscript-title" className="font-serif text-xl sm:text-2xl text-white font-semibold">
+            <h2 id="manuscript-title" className="font-serif text-xl sm:text-2xl text-white font-normal mt-0.5">
               The Mechanics of Belief: Tradition &amp; the Mind
             </h2>
           </div>
@@ -91,7 +91,7 @@ export const ManuscriptSheet: React.FC<ManuscriptSheetProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close manuscript monograph"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center px-4 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-bright"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center px-4 py-2 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-xs font-sans text-zinc-300 hover:text-white transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold-bright"
           >
             Close ✕
           </button>

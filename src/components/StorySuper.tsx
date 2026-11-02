@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { ACTS } from '../data/actsData.ts'
 
 interface StorySuperProps {
@@ -6,10 +6,7 @@ interface StorySuperProps {
   activeMomentIndex: number
 }
 
-// Authentic Ge'ez Fidel syllabary and liturgical punctuation pool
-const GEEZ_FIDEL_POOL = 'ሀለሐመሠረሰሸቀበተኀነአከወዐዘየደገጠጰጸፀፈፐ፩፪፫፬፭፮፯፰፱፲፳፴፵፶፷፸፹፺፻።፡፤'
-
-// Choreographed layout positions from actsData.ts
+// Fluid choreographed layout positions
 const POS_STYLES: Record<string, string> = {
   'pos-left': 'items-start text-left left-6 sm:left-14 right-auto max-w-2xl',
   'pos-right': 'items-end text-right right-6 sm:right-14 left-auto max-w-2xl ml-auto',
@@ -24,45 +21,6 @@ export const StorySuper: React.FC<StorySuperProps> = ({
   const act = ACTS[activeActIndex] || ACTS[0]
   const moment = act.moments[activeMomentIndex] || act.moments[0]
 
-  const [cipherText, setCipherText] = useState('')
-  const [headlineWords, setHeadlineWords] = useState<string[]>([])
-
-  // ScrambleText cipher effect using authentic Ge'ez Fidel
-  useEffect(() => {
-    let iteration = 0
-    const target = `ክፍል ${act.geez} // ${moment.label.toUpperCase()}`
-
-    const interval = setInterval(() => {
-      setCipherText(
-        target
-          .split('')
-          .map((char, index) => {
-            if (char === ' ' || char === '/' || index < iteration) {
-              return target[index]
-            }
-            return GEEZ_FIDEL_POOL[Math.floor(Math.random() * GEEZ_FIDEL_POOL.length)]
-          })
-          .join('')
-      )
-
-      if (iteration >= target.length) {
-        clearInterval(interval)
-      }
-      iteration += 1 / 2
-    }, 28)
-
-    return () => clearInterval(interval)
-  }, [act.geez, moment.label])
-
-  // Word-stagger animation on moment change
-  useEffect(() => {
-    // Strip HTML tags for word breakdown
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = moment.headline
-    const words = tempDiv.textContent?.split(' ') || []
-    setHeadlineWords(words)
-  }, [moment.headline])
-
   const posClass = POS_STYLES[moment.textPos] || POS_STYLES['pos-left']
 
   return (
@@ -70,27 +28,30 @@ export const StorySuper: React.FC<StorySuperProps> = ({
       id="story-super"
       className={`fixed bottom-24 sm:bottom-28 z-[10] pointer-events-none px-4 sm:px-8 transition-all duration-700 ease-out flex flex-col ${posClass}`}
     >
-      {/* Sacred Ge'ez Chapter Cipher Pill */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="px-3.5 py-1 rounded-full bg-black/60 border border-gold-bright/40 backdrop-blur-md text-xs font-mono text-gold-bright flex items-center gap-2 shadow-lg">
-          <span className="w-1.5 h-1.5 rounded-full bg-gold-bright animate-pulse" />
-          <span className="font-fidel">{cipherText}</span>
+      {/* Authentic Cultural Chapter Header */}
+      <div className="flex items-center gap-2.5 mb-3.5">
+        <span className="font-fidel text-gold-bright text-sm sm:text-base font-normal tracking-wide">
+          ምዕራፍ {act.geez}
         </span>
-        <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase hidden sm:inline-block">
-          {moment.motionType}
+        <span className="text-zinc-600 text-xs">/</span>
+        <span className="font-sans text-[11px] sm:text-xs font-medium tracking-[0.22em] text-zinc-300 uppercase">
+          {act.name}
         </span>
       </div>
 
-      {/* Poster-Scale Monograph Headline with Fluid Typography */}
+      {/* Poster-Scale Monograph Headline */}
       <h1
-        className="text-poster-headline font-normal leading-tight tracking-tight mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)] transition-opacity duration-500"
+        key={`h1-${activeActIndex}-${activeMomentIndex}`}
+        className="text-poster-headline font-serif font-normal leading-[1.12] tracking-tight mb-3.5 transition-all duration-500 drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)]"
         style={{ color: 'var(--ink)' }}
-        dangerouslySetInnerHTML={{ __html: moment.headline }}
-      />
+      >
+        {moment.headline}
+      </h1>
 
-      {/* Crisp Editorial Lead Text */}
+      {/* Refined Editorial Lead Text */}
       <p
-        className="text-editorial-lead max-w-2xl leading-relaxed drop-shadow-md opacity-90 transition-opacity duration-500"
+        key={`p-${activeActIndex}-${activeMomentIndex}`}
+        className="text-editorial-lead font-sans font-normal max-w-2xl leading-relaxed transition-all duration-500 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
         style={{ color: 'var(--ink-secondary)' }}
       >
         {moment.lead}

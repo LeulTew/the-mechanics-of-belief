@@ -9,7 +9,6 @@ interface BlenderSpecimen3DProps {
 
 export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, onClose }) => {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const [activeSpecimen, setActiveSpecimen] = useState<string>('All')
   const [wireframe, setWireframe] = useState<boolean>(false)
   const sceneRef = useRef<THREE.Scene | null>(null)
   const glbModelRef = useRef<THREE.Group | null>(null)
@@ -36,8 +35,8 @@ export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, on
     renderer.toneMappingExposure = 1.2
     container.appendChild(renderer.domElement)
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.8)
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffeedd, 0.9)
     scene.add(ambientLight)
 
     const dirLight1 = new THREE.DirectionalLight(0xe2c696, 2.5)
@@ -50,8 +49,9 @@ export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, on
 
     // Load Blender 5.2 GLB Model
     const loader = new GLTFLoader()
+    const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`
     loader.load(
-      './models/sanctuary_specimens.glb',
+      `${baseUrl}models/sanctuary_specimens.glb`,
       (gltf) => {
         const model = gltf.scene
         model.scale.set(1.2, 1.2, 1.2)
@@ -70,7 +70,7 @@ export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, on
 
     const animateLoop = () => {
       reqId = requestAnimationFrame(animateLoop)
-      angle += 0.008
+      angle += 0.007
       if (glbModelRef.current) {
         glbModelRef.current.rotation.y = angle
       }
@@ -115,22 +115,23 @@ export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, on
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-4xl h-[80vh] bg-[#0c0907] border border-gold-bright/30 rounded-2xl overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/50">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-gold-bright animate-pulse" />
-              <span className="text-xs font-mono text-gold-bright tracking-widest uppercase">
-                BLENDER 5.2 NATIVE SPECIMEN ENGINE
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-fidel text-gold-bright text-xs">ቅርሶች</span>
+              <span className="text-zinc-600 text-xs">·</span>
+              <span className="text-[11px] font-sans font-medium text-gold-bright tracking-[0.2em] uppercase">
+                Sacred Monolithic Reliquaries
               </span>
             </div>
-            <h3 className="font-serif text-lg text-white font-semibold">
-              Ethiopian Monolithic Rock Reliquaries
+            <h3 className="font-serif text-xl text-white font-normal">
+              Architectural Specimens of Faith
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-all cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-sans text-zinc-300 hover:text-white transition-all cursor-pointer"
           >
             Close ✕
           </button>
@@ -140,24 +141,27 @@ export const BlenderSpecimen3D: React.FC<BlenderSpecimen3DProps> = ({ isOpen, on
         <div ref={mountRef} className="flex-1 w-full relative cursor-grab active:cursor-grabbing" />
 
         {/* Footer Controls */}
-        <div className="px-6 py-3 border-t border-white/10 bg-black/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-zinc-400">
-          <div className="flex items-center gap-2">
-            <span>Render:</span>
+        <div className="px-6 py-3.5 border-t border-white/10 bg-black/50 flex flex-wrap items-center justify-between gap-3 text-xs font-sans text-zinc-400">
+          <div className="flex items-center gap-2.5">
+            <span className="text-zinc-500 text-xs">View:</span>
             <button
               type="button"
               onClick={() => setWireframe(!wireframe)}
-              className={`px-2.5 py-1 rounded border transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer ${
                 wireframe
-                  ? 'bg-gold-bright text-black border-gold-bright font-semibold'
-                  : 'bg-white/5 text-zinc-300 border-white/10 hover:text-white'
+                  ? 'bg-gold-bright text-neutral-950 border-gold-bright font-semibold'
+                  : 'bg-white/5 text-zinc-300 border-white/10 hover:text-white hover:bg-white/10'
               }`}
             >
-              {wireframe ? 'Wireframe Mode' : 'PBR Surface Mode'}
+              {wireframe ? 'Wireframe Mesh' : 'PBR Stone Surface'}
             </button>
           </div>
-          <div className="flex items-center gap-3">
-            <span>Draco MeshOptimizer: Enabled</span>
-            <span className="text-gold-bright">3 Specimens Loaded</span>
+          <div className="flex items-center gap-2 text-xs font-serif text-zinc-300">
+            <span>Bet Giyorgis Cross</span>
+            <span className="text-zinc-600">·</span>
+            <span>Aksumite Stele</span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-gold-bright">Bronze Sistrum</span>
           </div>
         </div>
       </div>
