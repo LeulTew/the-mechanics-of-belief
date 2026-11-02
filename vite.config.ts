@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  base: './',
+  base: '/the-mechanics-of-belief/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
