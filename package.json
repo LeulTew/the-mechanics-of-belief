@@ -1,8 +1,8 @@
 {
-  "name": "leultew.github.io",
+  "name": "the-mechanics-of-belief",
   "private": true,
   "version": "1.0.0",
-  "description": "Award-winning 3D Creative Engineering Portfolio - Leul Tewodros",
+  "description": "The Mechanics of Belief — 3D Sanctuary & Monograph",
   "type": "module",
   "scripts": {
     "dev": "vite",
