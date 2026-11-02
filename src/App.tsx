@@ -1,144 +1,123 @@
-import React, { useState, useEffect } from 'react'
-import { SanctuaryViewport } from './components/SanctuaryViewport.tsx'
-import { CameraRig3D } from './components/CameraRig3D.tsx'
-import { SacredGeometryStage } from './components/SacredGeometryStage.tsx'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ACTS, progressFor } from './data/acts.ts'
+import { SanctuaryEngine } from './engine/SanctuaryEngine.ts'
+import { useZema } from './engine/zema.ts'
+import { Masthead } from './components/Masthead.tsx'
 import { StorySuper } from './components/StorySuper.tsx'
-import { DirectorHUD } from './components/DirectorHUD.tsx'
+import { LensControls } from './components/LensControls.tsx'
 import { FilmTimeline } from './components/FilmTimeline.tsx'
 import { ManuscriptSheet } from './components/ManuscriptSheet.tsx'
-import { ZeroHeightNav } from './components/ZeroHeightNav.tsx'
-import { useSpringScroll } from './hooks/useSpringScroll.ts'
-import { useZemaAudio } from './hooks/useZemaAudio.ts'
-import { ThemeMode } from './types.ts'
-import { ACTS } from './data/actsData.ts'
+import { Shrines } from './components/Shrines.tsx'
+
+const reducedMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function scrollToProgress(p: number) {
+  const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+  window.scrollTo({ top: p * max, behavior: reducedMotion ? 'auto' : 'smooth' })
+}
 
 export function App() {
-  const [theme, setTheme] = useState<ThemeMode>('sanctuary')
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [beat, setBeat] = useState({ act: 0, beat: 0 })
+  const [vellum, setVellum] = useState(false)
+  const [macro, setMacro] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const zema = useZema()
 
-  // Sync theme with document.body class for global CSS variables
+  const viewportRef = useRef<HTMLElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rigRef = useRef<HTMLDivElement>(null)
+  const worldRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef<HTMLDivElement>(null)
+  const shrineRefs = useRef<HTMLElement[]>([])
+  const engine = useRef<SanctuaryEngine | null>(null)
+
   useEffect(() => {
-    document.body.classList.toggle('theme-vellum', theme === 'vellum')
-  }, [theme])
-
-  const {
-    progress,
-    activeActIndex,
-    activeMomentIndex,
-    lookYaw,
-    lookPitch,
-    walkX,
-    walkZ,
-    deepZoom,
-    onPointerDown,
-    resetLook,
-    toggleDeepZoom,
-    scrollToAct,
-    scrollToMoment
-  } = useSpringScroll()
-
-  const {
-    isPlaying: isAudioPlaying,
-    togglePlay: toggleAudio,
-    playSistrumChime
-  } = useZemaAudio()
-
-  // Chime sistrum when act changes
-  useEffect(() => {
-    if (activeActIndex > 0) {
-      playSistrumChime()
+    const e = new SanctuaryEngine(
+      {
+        viewport: viewportRef.current!,
+        canvas: canvasRef.current!,
+        rig: rigRef.current!,
+        world: worldRef.current!,
+        shrines: shrineRefs.current,
+        progressBar: progressRef.current!
+      },
+      {
+        reducedMotion,
+        onBeat: (act, b) => setBeat((prev) => (prev.act === act && prev.beat === b ? prev : { act, beat: b }))
+      }
+    )
+    engine.current = e
+    if (import.meta.env.DEV) (window as unknown as { __sanctuary: SanctuaryEngine }).__sanctuary = e
+    return () => {
+      e.destroy()
+      engine.current = null
     }
-  }, [activeActIndex, playSistrumChime])
+  }, [])
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'sanctuary' ? 'vellum' : 'sanctuary'))
-  }
+  useEffect(() => {
+    engine.current?.setVellum(vellum)
+    document.body.classList.toggle('theme-vellum', vellum)
+  }, [vellum])
+
+  useEffect(() => engine.current?.setMacro(macro), [macro])
+  useEffect(() => engine.current?.setPaused(sheetOpen), [sheetOpen])
+
+  const openSheet = useCallback(() => setSheetOpen(true), [])
+  const closeSheet = useCallback(() => setSheetOpen(false), [])
+  const toggleVellum = useCallback(() => setVellum((v) => !v), [])
+
+  const act = ACTS[beat.act]
 
   return (
-    <div
-      className={`min-h-screen relative select-none overflow-x-hidden ${
-        theme === 'vellum' ? 'bg-[#EAE2D0] text-[#181411]' : 'bg-[#0C0907] text-[#F5F0E6]'
-      }`}
-      onPointerDown={onPointerDown}
-    >
-      {/* Accessible Skip Link */}
-      <a
-        href="#film-timeline"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#E2C696] focus:text-neutral-950 focus:font-sans focus:font-medium focus:text-xs focus:rounded-md focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-amber-400"
-      >
-        Skip to navigation and timeline
+    <>
+      <a className="skip-link" href="#film-timeline">
+        Skip to chapters
       </a>
 
-      {/* Museum-Grade Architectural Navigation Masthead */}
-      <ZeroHeightNav
-        onOpenSheet={() => setIsSheetOpen(true)}
-        isSheetOpen={isSheetOpen}
-        isAudioPlaying={isAudioPlaying}
-        onToggleAudio={toggleAudio}
-        theme={theme}
-        onToggleTheme={toggleTheme}
+      <Masthead
+        vellum={vellum}
+        onToggleVellum={toggleVellum}
+        zema={zema.playing}
+        onToggleZema={zema.toggle}
+        sheetOpen={sheetOpen}
+        onOpenSheet={openSheet}
+        onHome={() => scrollToProgress(0)}
       />
 
-      {/* WebGL 3D Raymarching & Volumetric Cavern Viewport */}
-      <SanctuaryViewport
-        progress={progress}
-        lookYaw={lookYaw}
-        lookPitch={lookPitch}
-        walkX={walkX}
-        walkZ={walkZ}
-        deepZoom={deepZoom}
-        theme={theme}
-      />
+      <main id="viewport" ref={viewportRef} className={act.trap ? 'theme-trap' : undefined}>
+        <canvas id="canvas-3d-world" ref={canvasRef} aria-hidden="true" />
 
-      {/* 3D Perspective CSS Camera Rig with Architectural Bays */}
-      <CameraRig3D
-        progress={progress}
-        lookYaw={lookYaw}
-        lookPitch={lookPitch}
-        walkX={walkX}
-        walkZ={walkZ}
-        deepZoom={deepZoom}
-      />
+        <div id="camera-rig-3d" ref={rigRef}>
+          <div id="world-3d" ref={worldRef}>
+            <Shrines nodes={shrineRefs} />
+          </div>
+        </div>
 
-      {/* Sacred Geometry Stage (Anime.js + SVG) */}
-      <SacredGeometryStage activeActIndex={activeActIndex} progress={progress} />
+        <StorySuper
+          act={beat.act}
+          beat={beat.beat}
+          reducedMotion={reducedMotion}
+          onOpenSheet={openSheet}
+          onSelectBeat={(b) => scrollToProgress(progressFor(beat.act, b))}
+        />
 
-      {/* Authentic Cultural Typography & Monograph Moments */}
-      <StorySuper
-        activeActIndex={activeActIndex}
-        activeMomentIndex={activeMomentIndex}
-        onOpenSheet={() => setIsSheetOpen(true)}
-        onSelectMoment={(mIdx) => scrollToMoment(activeActIndex, mIdx)}
-      />
+        <LensControls
+          macro={macro}
+          onToggleMacro={() => setMacro((m) => !m)}
+          onReset={() => engine.current?.resetView()}
+          vellum={vellum}
+          onToggleVellum={toggleVellum}
+          zema={zema.playing}
+          onToggleZema={zema.toggle}
+        />
 
-      {/* Discreet Camera Lens Controls (Reset View & 35mm Wide / 85mm Macro) */}
-      <DirectorHUD
-        onResetLook={resetLook}
-        deepZoom={deepZoom}
-        onToggleDeepZoom={toggleDeepZoom}
-      />
+        <FilmTimeline act={beat.act} progressRef={progressRef} onSelectAct={(i) => scrollToProgress(progressFor(i))} />
+      </main>
 
-      {/* Full-Width Bottom Continuous Film Timeline Bar */}
-      <FilmTimeline
-        progress={progress}
-        activeActIndex={activeActIndex}
-        onSelectAct={scrollToAct}
-      />
+      <div id="scroll-runway" aria-hidden="true" />
 
-      {/* Complete Verbatim Monograph Slide-Over Drawer (Authentic Ethiopian Vellum Manuscript) */}
-      <ManuscriptSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-
-      {/* Native Continuous Scroll Spacer (8 Acts * 100vh = 800vh) */}
-      <div className="relative pointer-events-none w-full" style={{ height: `${ACTS.length * 100}vh` }}>
-        {ACTS.map((act, idx) => (
-          <section
-            key={idx}
-            id={`act-panel-${idx}`}
-            className="h-screen w-full flex items-center justify-center pointer-events-none"
-            aria-label={`Act ${act.geez}: ${act.name}`}
-          />
-        ))}
-      </div>
-    </div>
+      <ManuscriptSheet open={sheetOpen} onClose={closeSheet} />
+    </>
   )
 }

@@ -1,93 +1,87 @@
-import React from 'react'
-import { ACTS } from '../data/actsData.ts'
+import { Fragment, useLayoutEffect, useRef } from 'react'
+import { ACTS } from '../data/acts.ts'
 
-interface StorySuperProps {
-  activeActIndex: number
-  activeMomentIndex: number
+interface Props {
+  act: number
+  beat: number
+  reducedMotion: boolean
   onOpenSheet: () => void
-  onSelectMoment?: (momentIdx: number) => void
+  onSelectBeat: (beat: number) => void
 }
 
-export const StorySuper: React.FC<StorySuperProps> = ({
-  activeActIndex,
-  activeMomentIndex,
-  onOpenSheet,
-  onSelectMoment
-}) => {
-  const act = ACTS[activeActIndex] || ACTS[0]
-  const moment = act.moments[activeMomentIndex] || act.moments[0]
+const EASE = 'cubic-bezier(0.23, 1, 0.32, 1)'
 
-  const posClass = moment.textPos || 'pos-left'
+export function StorySuper({ act, beat, reducedMotion, onOpenSheet, onSelectBeat }: Props) {
+  const a = ACTS[act]
+  const b = a.beats[beat]
+  const headRef = useRef<HTMLHeadingElement>(null)
+  const leadRef = useRef<HTMLParagraphElement>(null)
+  const words = b.headline.split(' ')
+
+  // Words rise in one after another; the lead follows as a single line of motion.
+  useLayoutEffect(() => {
+    if (reducedMotion) return
+    const anims: Animation[] = []
+    headRef.current?.querySelectorAll<HTMLElement>('.rb-word').forEach((w, i) => {
+      anims.push(
+        w.animate(
+          [
+            { opacity: 0, transform: 'translate3d(0, 10px, 0) scale(0.97)', filter: 'blur(2.5px)' },
+            { opacity: 1, transform: 'none', filter: 'blur(0)' }
+          ],
+          { duration: 420, delay: i * 22, easing: EASE, fill: 'backwards' }
+        )
+      )
+    })
+    if (leadRef.current) {
+      anims.push(
+        leadRef.current.animate(
+          [
+            { opacity: 0, transform: 'translate3d(0, 8px, 0)', filter: 'blur(2px)' },
+            { opacity: 1, transform: 'none', filter: 'blur(0)' }
+          ],
+          { duration: 380, delay: 60, easing: EASE, fill: 'backwards' }
+        )
+      )
+    }
+    return () => anims.forEach((x) => x.cancel())
+  }, [act, beat, reducedMotion])
 
   return (
-    <section
-      id="story-super"
-      className={posClass}
-      aria-label="Monograph Narrative Stage"
-    >
-      <div id="a11y-live-story" className="sr-only" aria-live="polite" aria-atomic="true">
-        {moment.headline} {moment.lead}
-      </div>
-
-      {/* Restrained Monograph Chapter Trigger */}
-      <div
-        id="ui-chapter-trigger"
-        role="button"
-        tabIndex={0}
-        aria-haspopup="dialog"
-        aria-expanded={false}
-        aria-label="Open complete manuscript drawer"
-        title="Click to open complete manuscript"
-        onClick={onOpenSheet}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onOpenSheet()
-          }
-        }}
-        className="chapter-whisper"
-      >
-        <span className="geez-num" id="ui-geez">
-          {act.geez}
-        </span>
+    <section id="story-super" className={b.textPos} aria-labelledby="ui-headline">
+      <button type="button" className="chapter-whisper" aria-haspopup="dialog" title="Read the full manuscript" onClick={onOpenSheet}>
+        <span className="geez-num" lang="am" aria-hidden="true">{a.geez}</span>
         <span className="chapter-rule" aria-hidden="true" />
-        <span className="chapter-name" id="ui-act-name">
-          {act.name}
+        <span className="chapter-name">
+          <span className="sr-only">Chapter {act + 1}: </span>
+          {a.name}
         </span>
-      </div>
+      </button>
 
-      <div id="super-text-stage" className="super-text-stage" aria-hidden="true">
-        {/* High-Contrast Editorial Display Serif */}
-        <h1
-          key={`h1-${activeActIndex}-${activeMomentIndex}`}
-          className="super-headline"
-          id="ui-headline"
-        >
-          {moment.headline}
+      <div className="super-text-stage">
+        <h1 className="super-headline" id="ui-headline" ref={headRef} key={`h${act}-${beat}`}>
+          {words.map((w, i) => (
+            <Fragment key={i}>
+              <span className="rb-word">{w}</span>
+              {i < words.length - 1 ? ' ' : null}
+            </Fragment>
+          ))}
         </h1>
-
-        {/* Clean Humanist Sans Body Copy */}
-        <p
-          key={`p-${activeActIndex}-${activeMomentIndex}`}
-          className="super-body"
-          id="ui-lead"
-        >
-          {moment.lead}
+        <p className="super-body" ref={leadRef} key={`p${act}-${beat}`}>
+          {b.lead}
         </p>
       </div>
 
-      {/* Subbeat Chapter Switcher — Minimalist Editorial Hairlines */}
-      <div className="subbeat-nav" id="ui-subbeats" role="tablist" aria-label="Chapter Moments">
-        {act.moments.map((mom, mIdx) => (
+      <div className="subbeat-nav" aria-label="Moments in this chapter" role="group">
+        {a.beats.map((m, i) => (
           <button
-            key={mIdx}
+            key={i}
             type="button"
-            className={`subbeat-node ${mIdx === activeMomentIndex ? 'is-current' : ''}`}
-            role="tab"
-            aria-selected={mIdx === activeMomentIndex}
-            onClick={() => onSelectMoment?.(mIdx)}
+            className={`subbeat-node${i === beat ? ' is-current' : ''}`}
+            aria-current={i === beat ? 'step' : undefined}
+            onClick={() => onSelectBeat(i)}
           >
-            {mom.label}
+            {m.label}
           </button>
         ))}
       </div>
