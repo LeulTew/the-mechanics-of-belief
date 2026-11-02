@@ -200,6 +200,15 @@ export function useSpringScroll() {
     })
   }, [])
 
+  const scrollToMoment = useCallback((actIdx: number, momentIdx: number) => {
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+    const targetP = (actIdx + (momentIdx * 0.45 + 0.18)) / ACTS.length
+    window.scrollTo({
+      top: Math.min(0.992, targetP) * maxScroll,
+      behavior: 'smooth'
+    })
+  }, [])
+
   return {
     progress,
     activeActIndex,
@@ -213,6 +222,7 @@ export function useSpringScroll() {
     onPointerDown,
     resetLook,
     toggleDeepZoom,
-    scrollToAct
+    scrollToAct,
+    scrollToMoment
   }
 }

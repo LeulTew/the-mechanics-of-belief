@@ -336,3 +336,423 @@ body.theme-vellum .super-body {
 .skip-link:focus {
   top: 1rem;
 }
+
+
+
+/* Discreet Camera Lens Controls (#director-hud) */
+#director-hud {
+  position: fixed;
+  bottom: 3.9rem;
+  right: clamp(1.5rem, 5.5vw, 5.25rem);
+  z-index: 28;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  pointer-events: auto;
+}
+
+.hud-lens-btn {
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 0.2rem 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition:
+    color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    transform 140ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hud-lens-btn:hover {
+    color: var(--ink);
+    border-bottom-color: var(--hairline-strong);
+  }
+}
+.hud-lens-btn:active {
+  transform: scale(0.97);
+}
+.hud-lens-btn.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--ink-secondary);
+}
+
+
+    #masthead {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: calc(4.25rem + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) clamp(1.5rem, 5.5vw, 5.25rem) 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 30;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(10, 8, 6, 0.52) 0%, rgba(10, 8, 6, 0) 100%);
+    }
+    body.theme-vellum #masthead {
+      background: linear-gradient(180deg, rgba(234, 226, 208, 0.65) 0%, rgba(234, 226, 208, 0) 100%);
+    }
+
+    .masthead-brand {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.22rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      transition: opacity 200ms ease, transform 150ms var(--ease-out);
+    }
+    .masthead-brand:active {
+      transform: scale(0.98);
+    }
+
+    .masthead-brand svg {
+      width: 16px;
+      height: 16px;
+      color: var(--ink-secondary);
+      flex-shrink: 0;
+      transition: transform 450ms var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .masthead-brand:hover svg {
+        transform: rotate(90deg);
+      }
+    }
+
+    .masthead-actions {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 1.65rem;
+      white-space: nowrap;
+    }
+
+    .masthead-btn {
+      background: none;
+      border: none;
+      border-bottom: 1px solid transparent;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0.65rem 0.55rem;
+      font-family: 'Plus Jakarta Sans', 'Noto Serif Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 0.76rem;
+      font-weight: 400;
+      font-style: normal;
+      letter-spacing: 0.04em;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      white-space: nowrap;
+      transition:
+        color 200ms var(--ease-out),
+        border-color 200ms var(--ease-out),
+        transform 140ms var(--ease-out);
+    }
+    #zema-label {
+      font-family: 'Noto Serif Ethiopic', 'Plus Jakarta Sans', serif;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .masthead-btn:hover {
+        color: var(--ink);
+        border-bottom-color: var(--hairline-strong);
+      }
+    }
+    .masthead-btn:active {
+      transform: scale(0.97);
+    }
+
+    .zema-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink-muted);
+      flex-shrink: 0;
+      transition: background-color 220ms ease, box-shadow 220ms ease;
+    }
+    .zema-dot.is-playing {
+      background: var(--ink);
+      box-shadow: 0 0 8px var(--ink);
+    }
+
+    /* Bottom Continuous Film Timeline Bar (8 Ge'ez Numerals ፩ - ፰) */
+    #film-timeline {
+      position: fixed;
+      bottom: calc(1.35rem + env(safe-area-inset-bottom, 0px));
+      left: clamp(1.5rem, 5.5vw, 5.25rem);
+      right: clamp(1.5rem, 5.5vw, 5.25rem);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      pointer-events: auto;
+    }
+
+    .timeline-ticks {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timeline-tick {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.42rem;
+      font-family: 'Plus Jakarta Sans', 'Noto Serif Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 0.74rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      color: var(--ink-muted);
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0.5rem 0.35rem;
+      transition:
+        color 200ms var(--ease-out),
+        transform 150ms var(--ease-out);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .timeline-tick:hover {
+        color: var(--ink-secondary);
+        transform: translateY(-1px);
+      }
+    }
+    .timeline-tick:active {
+      transform: scale(0.97);
+    }
+    .timeline-tick.is-active {
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .timeline-tick .tick-geez {
+      font-family: 'Noto Serif Ethiopic', 'Cormorant Garamond', serif;
+      color: currentColor;
+      font-weight: 400;
+      font-size: 0.88rem;
+      opacity: 0.85;
+    }
+
+    .timeline-track {
+      width: 100%;
+      height: 1px;
+      background: var(--hairline);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #timeline-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background: var(--ink-secondary);
+      transform-origin: left center;
+      transform: scaleX(0.02);
+    }
+
+    /* =========================================================================
+       SLIDE-OVER FULL VERBATIM MANUSCRIPT DRAWER (PAGES 1-4)
+       ========================================================================= */
+    #sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 6, 5, 0.68);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 320ms var(--ease-out);
+    }
+    #sheet-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #manuscript-sheet {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(92vw, 660px);
+      background: #F5F0E6;
+      color: #181411;
+      z-index: 100;
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform 420ms var(--ease-drawer), visibility 420ms var(--ease-drawer);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(24, 20, 17, 0.12);
+      box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
+    }
+    #manuscript-sheet.is-open {
+      transform: translateX(0%);
+      visibility: visible;
+    }
+
+    .sheet-header {
+      padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 2.2rem 1.5rem;
+      border-bottom: 1px solid rgba(24, 20, 17, 0.10);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ECE5D5;
+    }
+
+    .sheet-header h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.38rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .sheet-close {
+      background: none;
+      border: 1px solid rgba(24, 20, 17, 0.22);
+      border-radius: 999px;
+      min-height: 44px;
+      min-width: 44px;
+      padding: 0.5rem 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      color: #181411;
+      transition: transform 140ms var(--ease-out), background-color 180ms ease;
+    }
+    .sheet-close:active {
+      transform: scale(0.97);
+    }
+
+    .sheet-content {
+      padding: 2.4rem 2.6rem calc(3.5rem + env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.2rem;
+      line-height: 1.72;
+      color: #26201B;
+    }
+
+    /* Screen Reader Only Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    .sheet-content h3 {
+      font-size: 1.55rem;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      color: #181411;
+      margin: 2.2rem 0 0.75rem;
+    }
+    .sheet-content h3:first-child {
+      margin-top: 0;
+    }
+    .sheet-content p {
+      margin-bottom: 1.05rem;
+      max-width: 65ch;
+    }
+    .sheet-content ul {
+      margin: 0.75rem 0 1.25rem 1.4rem;
+      max-width: 62ch;
+    }
+    .sheet-content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.25rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.85rem;
+    }
+    .sheet-table th, .sheet-table td {
+      border-bottom: 1px solid rgba(24, 20, 17, 0.14);
+      padding: 0.7rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .sheet-table th {
+      font-weight: 500;
+      color: #181411;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 120ms !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+      #masthead {
+        height: 3.5rem;
+        padding: 0 1.25rem;
+      }
+      .masthead-brand {
+        font-size: 1.05rem;
+      }
+      .desktop-only {
+        display: none;
+      }
+      #director-hud {
+        bottom: 3.3rem;
+        right: 1.25rem;
+      }
+      #story-super {
+        left: 1.25rem !important;
+        right: 1.25rem !important;
+        top: 3.8rem !important;
+        transform: none !important;
+        width: auto !important;
+        gap: 0.65rem;
+        text-align: left !important;
+        align-items: flex-start !important;
+      }
+      .super-headline {
+        font-size: clamp(1.75rem, 6.2vw, 2.25rem);
+      }
+      .super-body {
+        font-size: 0.88rem;
+        line-height: 1.54;
+      }
+      .timeline-tick .tick-label {
+        display: none;
+      }
+    }

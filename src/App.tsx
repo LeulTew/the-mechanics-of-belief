@@ -3,6 +3,7 @@ import { SanctuaryViewport } from './components/SanctuaryViewport.tsx'
 import { CameraRig3D } from './components/CameraRig3D.tsx'
 import { SacredGeometryStage } from './components/SacredGeometryStage.tsx'
 import { StorySuper } from './components/StorySuper.tsx'
+import { DirectorHUD } from './components/DirectorHUD.tsx'
 import { FilmTimeline } from './components/FilmTimeline.tsx'
 import { ManuscriptSheet } from './components/ManuscriptSheet.tsx'
 import { ZeroHeightNav } from './components/ZeroHeightNav.tsx'
@@ -30,14 +31,15 @@ export function App() {
     walkZ,
     deepZoom,
     onPointerDown,
-    scrollToAct
+    resetLook,
+    toggleDeepZoom,
+    scrollToAct,
+    scrollToMoment
   } = useSpringScroll()
 
   const {
     isPlaying: isAudioPlaying,
-    currentMode: currentZemaMode,
     togglePlay: toggleAudio,
-    setMode: setZemaMode,
     playSistrumChime
   } = useZemaAudio()
 
@@ -62,7 +64,7 @@ export function App() {
       {/* Accessible Skip Link */}
       <a
         href="#film-timeline"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-gold-bright focus:text-neutral-950 focus:font-sans focus:font-medium focus:text-xs focus:rounded-md focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#E2C696] focus:text-neutral-950 focus:font-sans focus:font-medium focus:text-xs focus:rounded-md focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-amber-400"
       >
         Skip to navigation and timeline
       </a>
@@ -70,10 +72,9 @@ export function App() {
       {/* Museum-Grade Architectural Navigation Masthead */}
       <ZeroHeightNav
         onOpenSheet={() => setIsSheetOpen(true)}
+        isSheetOpen={isSheetOpen}
         isAudioPlaying={isAudioPlaying}
         onToggleAudio={toggleAudio}
-        currentZemaMode={currentZemaMode}
-        onSelectZemaMode={setZemaMode}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
@@ -103,16 +104,28 @@ export function App() {
       <SacredGeometryStage activeActIndex={activeActIndex} progress={progress} />
 
       {/* Authentic Cultural Typography & Monograph Moments */}
-      <StorySuper activeActIndex={activeActIndex} activeMomentIndex={activeMomentIndex} />
+      <StorySuper
+        activeActIndex={activeActIndex}
+        activeMomentIndex={activeMomentIndex}
+        onOpenSheet={() => setIsSheetOpen(true)}
+        onSelectMoment={(mIdx) => scrollToMoment(activeActIndex, mIdx)}
+      />
 
-      {/* Continuous Bottom Cinematic Scrubber */}
+      {/* Discreet Camera Lens Controls (Reset View & 35mm Wide / 85mm Macro) */}
+      <DirectorHUD
+        onResetLook={resetLook}
+        deepZoom={deepZoom}
+        onToggleDeepZoom={toggleDeepZoom}
+      />
+
+      {/* Full-Width Bottom Continuous Film Timeline Bar */}
       <FilmTimeline
         progress={progress}
         activeActIndex={activeActIndex}
         onSelectAct={scrollToAct}
       />
 
-      {/* Complete Verbatim Monograph Slide-Over Drawer (Authentic Vellum Manuscript) */}
+      {/* Complete Verbatim Monograph Slide-Over Drawer (Authentic Ethiopian Vellum Manuscript) */}
       <ManuscriptSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
 
       {/* Native Continuous Scroll Spacer (8 Acts * 100vh = 800vh) */}
