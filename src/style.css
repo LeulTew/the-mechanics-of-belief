@@ -319,6 +319,58 @@ body.theme-vellum .super-body {
   }
 }
 
+/* Sub-beat Chapter Switcher — Minimalist Editorial Hairlines */
+.subbeat-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding-top: 0.25rem;
+}
+
+.subbeat-node {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  padding: 0.5rem 0.35rem;
+  min-height: 44px;
+  transition:
+    color 200ms var(--ease-out),
+    transform 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .subbeat-node:hover {
+    color: var(--ink-secondary);
+  }
+}
+.subbeat-node:active {
+  transform: scale(0.97);
+}
+.subbeat-node::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.4;
+  transition: width 280ms var(--ease-out), opacity 220ms ease;
+}
+.subbeat-node.is-current {
+  color: var(--ink);
+  font-weight: 500;
+}
+.subbeat-node.is-current::before {
+  width: 28px;
+  opacity: 0.9;
+}
+
 /* Skip Link */
 .skip-link {
   position: absolute;
