@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react'
+import React, { useState, useEffect } from 'react'
 import { SanctuaryViewport } from './components/SanctuaryViewport.tsx'
 import { CameraRig3D } from './components/CameraRig3D.tsx'
 import { SacredGeometryStage } from './components/SacredGeometryStage.tsx'
@@ -11,14 +11,9 @@ import { useZemaAudio } from './hooks/useZemaAudio.ts'
 import { ThemeMode } from './types.ts'
 import { ACTS } from './data/actsData.ts'
 
-const BlenderSpecimen3D = lazy(() =>
-  import('./components/BlenderSpecimen3D.tsx').then((m) => ({ default: m.BlenderSpecimen3D }))
-)
-
 export function App() {
   const [theme, setTheme] = useState<ThemeMode>('sanctuary')
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isBlenderModalOpen, setIsBlenderModalOpen] = useState(false)
 
   // Sync theme with document.body class for global CSS variables
   useEffect(() => {
@@ -81,7 +76,6 @@ export function App() {
         onSelectZemaMode={setZemaMode}
         theme={theme}
         onToggleTheme={toggleTheme}
-        onToggleBlenderModal={() => setIsBlenderModalOpen(true)}
       />
 
       {/* WebGL 3D Raymarching & Volumetric Cavern Viewport */}
@@ -118,18 +112,8 @@ export function App() {
         onSelectAct={scrollToAct}
       />
 
-      {/* Complete Monograph Slide-Over Drawer */}
+      {/* Complete Verbatim Monograph Slide-Over Drawer (Authentic Vellum Manuscript) */}
       <ManuscriptSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-
-      {/* Lazy-Loaded Blender 5.2 3D Native Specimen Modal */}
-      {isBlenderModalOpen && (
-        <Suspense fallback={null}>
-          <BlenderSpecimen3D
-            isOpen={isBlenderModalOpen}
-            onClose={() => setIsBlenderModalOpen(false)}
-          />
-        </Suspense>
-      )}
 
       {/* Native Continuous Scroll Spacer (8 Acts * 100vh = 800vh) */}
       <div className="relative pointer-events-none w-full" style={{ height: `${ACTS.length * 100}vh` }}>
