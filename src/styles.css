@@ -2,14 +2,14 @@
   --bg-sanctuary: #0c0907;
   --ink: #f5f0e6;
   --ink-secondary: rgba(245, 240, 230, 0.78);
-  --ink-muted: rgba(245, 240, 230, 0.56);
+  --ink-muted: rgba(245, 240, 230, 0.7);
   --hairline: rgba(245, 240, 230, 0.16);
   --hairline-strong: rgba(245, 240, 230, 0.36);
   --veil: 10, 8, 6;
   --serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
   --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --fidel: 'Noto Serif Ethiopic', 'Nyala', 'Abyssinica SIL', serif;
-  --gutter: clamp(1.5rem, 5.5vw, 5.25rem);
+  --gutter: max(clamp(1.5rem, 5.5vw, 5.25rem), env(safe-area-inset-left), env(safe-area-inset-right));
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-cine: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -19,8 +19,8 @@
 body.theme-vellum {
   --bg-sanctuary: #eae2d0;
   --ink: #181411;
-  --ink-secondary: rgba(24, 20, 17, 0.8);
-  --ink-muted: rgba(24, 20, 17, 0.6);
+  --ink-secondary: rgba(24, 20, 17, 0.88);
+  --ink-muted: rgba(24, 20, 17, 0.8);
   --hairline: rgba(24, 20, 17, 0.16);
   --hairline-strong: rgba(24, 20, 17, 0.38);
   --veil: 238, 231, 215;
@@ -74,9 +74,10 @@ button {
 }
 
 :focus-visible {
-  outline: 1px solid var(--ink);
+  outline: 2px solid var(--ink);
   outline-offset: 4px;
   border-radius: 2px;
+  box-shadow: 0 0 0 6px rgba(var(--veil), 0.55);
 }
 
 .sr-only {
@@ -143,6 +144,9 @@ button {
 body.theme-vellum #viewport {
   background: #e8dfcc;
 }
+#viewport.no-webgl #canvas-3d-world {
+  display: none;
+}
 #viewport.no-webgl {
   background:
     radial-gradient(ellipse at 60% 55%, rgba(196, 120, 62, 0.28), transparent 60%),
@@ -186,7 +190,23 @@ body.theme-vellum #viewport {
   margin: -168px 0 0 -160px;
   transform-style: preserve-3d;
   visibility: hidden;
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
   will-change: transform, opacity;
+}
+
+/* Contact shadow where the relic meets the altar top. */
+.shrine-3d::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -14px;
+  height: 30px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0) 72%);
+  filter: blur(4px);
+  transform: translateZ(-2px);
+  pointer-events: none;
 }
 
 /* Warm aura behind each relic, never a hard card. */
@@ -235,6 +255,8 @@ body.theme-vellum #viewport {
   align-items: flex-start;
   gap: 1.15rem;
   cursor: auto;
+  -webkit-user-select: text;
+  user-select: text;
   transition:
     left 880ms var(--ease-cine),
     top 880ms var(--ease-cine),
@@ -341,8 +363,8 @@ body.theme-vellum .super-headline {
 .super-body {
   font-family: var(--sans);
   font-size: clamp(0.94rem, 1.03vw, 1.04rem);
-  font-weight: 300;
-  line-height: 1.68;
+  font-weight: 400;
+  line-height: 1.66;
   letter-spacing: -0.005em;
   max-width: 43ch;
   text-wrap: pretty;
@@ -413,7 +435,7 @@ body.theme-vellum .super-body {
   background: linear-gradient(180deg, rgba(10, 8, 6, 0.55) 0%, rgba(10, 8, 6, 0) 100%);
 }
 body.theme-vellum #masthead {
-  background: linear-gradient(180deg, rgba(234, 226, 208, 0.7) 0%, rgba(234, 226, 208, 0) 100%);
+  background: linear-gradient(180deg, rgba(234, 226, 208, 0.9) 0%, rgba(234, 226, 208, 0) 100%);
 }
 
 .masthead-brand {
@@ -489,13 +511,13 @@ body.theme-vellum #masthead {
   transform-origin: left center;
   transition: transform 260ms var(--ease-out), background-color 200ms ease;
 }
-.masthead-btn[aria-pressed='true'],
+.masthead-btn.is-on,
 .masthead-btn[aria-expanded='true'],
-.hud-lens-btn[aria-pressed='true'] {
+.hud-lens-btn.is-on {
   color: var(--ink);
 }
-.masthead-btn[aria-pressed='true']::after,
-.hud-lens-btn[aria-pressed='true']::after {
+.masthead-btn.is-on::after,
+.hud-lens-btn.is-on::after {
   transform: scaleX(1);
   background: var(--ink-secondary);
 }
@@ -547,6 +569,22 @@ body.theme-vellum #masthead {
   gap: 1.15rem;
 }
 
+/* Ground for the timeline and lens row, mirroring the masthead's gradient. */
+#viewport::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9rem;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(10, 8, 6, 0.6) 0%, rgba(10, 8, 6, 0) 100%);
+}
+body.theme-vellum #viewport::after {
+  background: linear-gradient(0deg, rgba(234, 226, 208, 0.9) 0%, rgba(234, 226, 208, 0.6) 55%, rgba(234, 226, 208, 0) 100%);
+}
+
 #film-timeline {
   position: fixed;
   left: var(--gutter);
@@ -586,7 +624,6 @@ body.theme-vellum #masthead {
 .timeline-tick .tick-geez {
   font-family: var(--fidel);
   font-size: 0.88rem;
-  opacity: 0.85;
 }
 .timeline-tick.is-active {
   color: var(--ink);
@@ -826,11 +863,11 @@ body.theme-vellum #masthead {
     background: linear-gradient(180deg, rgba(var(--veil), 0.72) 0%, rgba(var(--veil), 0.5) 70%, rgba(var(--veil), 0) 100%);
   }
   .super-headline {
-    font-size: clamp(1.75rem, 6.2vw, 2.25rem);
+    font-size: clamp(2rem, 8.4vw, 2.5rem);
   }
   .super-body {
-    font-size: 0.9rem;
-    line-height: 1.56;
+    font-size: 0.98rem;
+    line-height: 1.55;
   }
   .subbeat-nav {
     gap: 1.1rem;
@@ -843,6 +880,24 @@ body.theme-vellum #masthead {
     padding-left: 1.4rem;
     padding-right: 1.4rem;
     font-size: 1.12rem;
+  }
+}
+
+/* Short or zoomed screens: the story scrolls inside itself rather than running under the controls. */
+@media (max-height: 560px) {
+  #story-super {
+    max-height: calc(100dvh - 9rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .super-headline {
+    font-size: clamp(1.5rem, 4.5vh, 2.25rem);
+  }
+}
+@media (max-width: 360px) {
+  .timeline-tick {
+    min-width: 0;
+    padding: 0 0.1rem;
   }
 }
 

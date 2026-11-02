@@ -49,6 +49,9 @@ export function StorySuper({ act, beat, reducedMotion, onOpenSheet, onSelectBeat
 
   return (
     <section id="story-super" className={b.textPos} aria-labelledby="ui-headline">
+      <p className="sr-only" aria-live="polite">
+        Chapter {act + 1}, {a.name}: {b.headline}
+      </p>
       <button type="button" className="chapter-whisper" aria-haspopup="dialog" title="Read the full manuscript" onClick={onOpenSheet}>
         <span className="geez-num" lang="am" aria-hidden="true">{a.geez}</span>
         <span className="chapter-rule" aria-hidden="true" />

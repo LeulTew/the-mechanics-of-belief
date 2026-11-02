@@ -20,8 +20,7 @@ export function LensControls({ macro, onToggleMacro, onReset, vellum, onToggleVe
       </button>
       <button
         type="button"
-        className={`hud-lens-btn${macro ? ' is-active' : ''}`}
-        aria-pressed={macro}
+        className={`hud-lens-btn${macro ? ' is-on' : ''}`}
         title="Switch between a wide and a close lens"
         onClick={onToggleMacro}
       >

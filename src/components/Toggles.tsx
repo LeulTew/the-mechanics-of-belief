@@ -11,8 +11,7 @@ export function LightingButton({ className, vellum, onToggle }: LightingProps) {
   return (
     <button
       type="button"
-      className={className}
-      aria-pressed={vellum}
+      className={`${className}${vellum ? ' is-on' : ''}`}
       title="Switch between torchlight and daylight"
       onClick={onToggle}
     >
@@ -32,7 +31,7 @@ export function ZemaButton({ className, playing, onToggle }: ZemaProps) {
   return (
     <button
       type="button"
-      className={className}
+      className={`${className}${playing ? ' is-on' : ''}`}
       aria-pressed={playing}
       aria-label="Zema Resonance"
       title={playing ? 'Stop the zema drone' : 'Play a quiet zema drone'}
@@ -42,6 +41,7 @@ export function ZemaButton({ className, playing, onToggle }: ZemaProps) {
       <span aria-hidden="true">
         <span lang="am">ዜማ</span>
         <span className="desktop-only"> · Zema Resonance</span>
+        <span className="compact-only"> Zema</span>
       </span>
     </button>
   )

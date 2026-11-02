@@ -57,6 +57,7 @@ export function useZema() {
   const [playing, setPlaying] = useState(false)
   const voice = useRef<Voice | null>(null)
   const on = useRef(false)
+  const idle = useRef(0)
 
   const toggle = useCallback(() => {
     try {
@@ -64,11 +65,14 @@ export function useZema() {
       const { ctx, master } = voice.current
       if (ctx.state === 'suspended') void ctx.resume()
       on.current = !on.current
+      window.clearTimeout(idle.current)
       const now = ctx.currentTime
       master.gain.cancelScheduledValues(now)
       master.gain.setValueAtTime(master.gain.value, now)
       master.gain.setTargetAtTime(on.current ? LEVEL : 0, now, on.current ? 0.6 : 0.25)
       setPlaying(on.current)
+      // Once faded out, stop the clock so silent oscillators cost nothing.
+      if (!on.current) idle.current = window.setTimeout(() => void ctx.suspend(), 1500)
     } catch {
       on.current = false
       setPlaying(false)
@@ -86,6 +90,7 @@ export function useZema() {
     document.addEventListener('visibilitychange', onVis)
     return () => {
       document.removeEventListener('visibilitychange', onVis)
+      window.clearTimeout(idle.current)
       void voice.current?.ctx.close()
       voice.current = null
       on.current = false

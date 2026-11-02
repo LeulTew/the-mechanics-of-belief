@@ -27,7 +27,8 @@ const PARTICLE_COUNT = 820
 
 const DPR_CAP = 1.5
 const SCALE_MIN = 0.5
-const FRAME_BUDGET = 1 / 50
+const WALK_X = 240
+const WALK_Z = 360
 
 type Locs = Record<string, WebGLUniformLocation | null>
 
@@ -53,10 +54,11 @@ export class SanctuaryEngine {
   private paused = false
   private hidden = false
 
-  // Resolution scale adapts to keep frames under budget; decisions are
-  // spaced in time, not frames, so a slow device reacts within a second.
+  // Resolution scale adapts to keep frames near the display's refresh interval;
+  // decisions are spaced in time, not frames, so a slow device reacts within a second.
   private renderScale = 1
-  private frameAvg = FRAME_BUDGET
+  private frameAvg = 1 / 60
+  private refresh = 1 / 60
   private nextScaleCheck = 0
 
   private scroll = { target: 0, value: 0, velocity: 0 }
@@ -128,6 +130,8 @@ export class SanctuaryEngine {
     this.disposed = true
     cancelAnimationFrame(this.raf)
     this.unbind()
+    this.el.canvas.removeEventListener('webglcontextlost', this.onContextLost)
+    this.el.canvas.removeEventListener('webglcontextrestored', this.onContextRestored)
     const gl = this.gl
     if (gl) {
       gl.deleteProgram(this.ray)
@@ -181,10 +185,12 @@ export class SanctuaryEngine {
     const t = e.target as HTMLElement | null
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
     const k = e.key.toLowerCase()
-    if (k === 'w') this.walk.z -= 90
-    else if (k === 's') this.walk.z += 90
-    else if (k === 'a') this.walk.x -= 65
-    else if (k === 'd') this.walk.x += 65
+    // Only while nothing interactive has focus, so the letters never hijack a control.
+    if (document.activeElement && document.activeElement !== document.body) return
+    if (k === 'w') this.walk.z = clamp(this.walk.z - 90, -WALK_Z, WALK_Z)
+    else if (k === 's') this.walk.z = clamp(this.walk.z + 90, -WALK_Z, WALK_Z)
+    else if (k === 'a') this.walk.x = clamp(this.walk.x - 65, -WALK_X, WALK_X)
+    else if (k === 'd') this.walk.x = clamp(this.walk.x + 65, -WALK_X, WALK_X)
   }
 
   private onVisibility = () => {
@@ -226,7 +232,8 @@ export class SanctuaryEngine {
     const dt = this.last ? Math.min(0.05, (now - this.last) / 1000) : 1 / 60
     this.last = now
     if (this.hidden) return
-    this.elapsed += dt
+    // Reduced motion freezes the scene's own clock: no drifting motes, flicker or ripples.
+    if (!this.opts.reducedMotion) this.elapsed += dt
 
     this.stepScroll(dt)
     this.applyBeat(false)
@@ -317,8 +324,8 @@ export class SanctuaryEngine {
   private view = { yaw: 0, pitch: 0, roll: 0, persp: PERSPECTIVE }
 
   private placeShrines() {
-    const bob = this.opts.reducedMotion ? 0 : Math.sin(this.elapsed * 1.35) * 4
     const c = this.cam
+    const act = this.beat.act
     for (let i = 0; i < SHRINES.length; i++) {
       const s = SHRINES[i]
       const node = this.el.shrines[i]
@@ -327,6 +334,11 @@ export class SanctuaryEngine {
       const dy = s.y - c.y
       const dz = s.z - c.z
       const dist = Math.hypot(dx, dy, dz)
+      // Relics are page layers the rock cannot occlude, so only the current
+      // chapter's relic is shown; it fades in and out via CSS opacity.
+      const current = i === act
+      node.classList.toggle('is-current', current)
+      if (!current && node.style.visibility === 'hidden') continue
       if (dist > 2900 || dz > 260) {
         if (node.style.visibility !== 'hidden') node.style.visibility = 'hidden'
         continue
@@ -335,11 +347,12 @@ export class SanctuaryEngine {
       // Sink into the dark the way the raymarched fog does; only fade out at the far edge
       // so distant relics read as solid objects in shadow, not translucent ghosts.
       const light = dist < 700 ? 1 : Math.max(0.12, Math.exp(-(dist - 700) * 0.0011))
-      const fade = clamp(1 - (dist - 2300) / 600, 0, 1)
-      node.style.opacity = fade.toFixed(3)
-      node.style.filter = light < 0.995 ? `brightness(${light.toFixed(3)})` : ''
+      node.style.opacity = current ? clamp(1 - (dist - 2300) / 600, 0, 1).toFixed(3) : '0'
+      // Filter the image, not the 3D node, so the aura keeps its depth offset.
+      const img = node.querySelector('img')
+      if (img) img.style.filter = light < 0.995 ? `brightness(${light.toFixed(3)})` : ''
       node.style.transform =
-        `translate3d(${s.x}px, ${(s.y + bob).toFixed(2)}px, ${s.z}px) rotateY(${s.rotY}deg)`
+        `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateY(${s.rotY}deg)`
     }
   }
 
@@ -349,19 +362,22 @@ export class SanctuaryEngine {
     const gl = this.gl
     if (!gl) return
     this.frameAvg += (dt - this.frameAvg) * 0.1
+    // Track the display's frame interval: fastest recent frame, drifting up slowly.
+    this.refresh = Math.min(dt, this.refresh * 1.002)
+    const target = Math.max(this.refresh, 1 / 120)
     if (now >= this.nextScaleCheck) {
-      if (this.frameAvg > FRAME_BUDGET * 1.12 && this.renderScale > SCALE_MIN) {
+      if (this.frameAvg > Math.max(target * 1.45, 1 / 50) && this.renderScale > SCALE_MIN) {
         this.renderScale = Math.max(SCALE_MIN, this.renderScale - 0.1)
         this.nextScaleCheck = now + 500
-      } else if (this.frameAvg < FRAME_BUDGET * 0.7 && this.renderScale < 1) {
+      } else if (this.frameAvg < target * 1.12 && this.renderScale < 1) {
         this.renderScale = Math.min(1, this.renderScale + 0.05)
         this.nextScaleCheck = now + 2500
       }
     }
     const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * this.renderScale
-    const w = Math.max(1, Math.round(window.innerWidth * dpr))
-    const h = Math.max(1, Math.round(window.innerHeight * dpr))
     const canvas = this.el.canvas
+    const w = Math.max(1, Math.round(canvas.clientWidth * dpr))
+    const h = Math.max(1, Math.round(canvas.clientHeight * dpr))
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w
       canvas.height = h
@@ -371,11 +387,11 @@ export class SanctuaryEngine {
 
   private draw() {
     const gl = this.gl
-    if (!gl || !this.ray) return
+    if (!gl || !this.ray || gl.isContextLost()) return
     const { yaw, pitch, roll, persp } = this.view
     const c = this.cam
-    const cw = window.innerWidth
-    const ch = window.innerHeight
+    const cw = this.el.canvas.clientWidth || window.innerWidth
+    const ch = this.el.canvas.clientHeight || window.innerHeight
 
     gl.disable(gl.BLEND)
     gl.useProgram(this.ray)
@@ -421,6 +437,9 @@ export class SanctuaryEngine {
     for (const loc of [a.pos, a.phase, a.speed, a.type]) gl.disableVertexAttribArray(loc)
   }
 
+  private onContextLost = (e: Event) => e.preventDefault()
+  private onContextRestored = () => this.buildGL()
+
   private initGL() {
     const canvas = this.el.canvas
     const attrs: WebGLContextAttributes = { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'high-performance' }
@@ -430,9 +449,18 @@ export class SanctuaryEngine {
       return
     }
     this.gl = gl
-    canvas.addEventListener('webglcontextlost', (e) => e.preventDefault())
+    canvas.addEventListener('webglcontextlost', this.onContextLost)
+    canvas.addEventListener('webglcontextrestored', this.onContextRestored)
+    this.buildGL()
+  }
 
+  // Programs, buffers and textures; rebuilt from scratch after a context restore.
+  private buildGL() {
+    const gl = this.gl
+    if (!gl) return
+    gl.viewport(0, 0, this.el.canvas.width, this.el.canvas.height)
     this.ray = program(gl, RAY_VS, RAY_FS)
+    this.el.viewport.classList.toggle('no-webgl', !this.ray)
     this.part = program(gl, PART_VS, PART_FS)
     if (this.ray) {
       this.rayA = gl.getAttribLocation(this.ray, 'aCorner')

@@ -16,6 +16,9 @@ export function ManuscriptSheet({ open, onClose }: Props) {
     const returnTo = document.activeElement as HTMLElement | null
     const root = document.documentElement
     root.classList.add('sheet-locked')
+    // Everything behind the sheet leaves the tab order and the accessibility tree.
+    const behind = Array.from(document.querySelectorAll<HTMLElement>('#masthead, #viewport, .skip-link'))
+    behind.forEach((el) => (el.inert = true))
     const id = requestAnimationFrame(() => closeRef.current?.focus())
 
     const onKey = (e: KeyboardEvent) => {
@@ -42,6 +45,7 @@ export function ManuscriptSheet({ open, onClose }: Props) {
       cancelAnimationFrame(id)
       window.removeEventListener('keydown', onKey)
       root.classList.remove('sheet-locked')
+      behind.forEach((el) => (el.inert = false))
       returnTo?.focus({ preventScroll: true })
     }
   }, [open, onClose])
@@ -64,7 +68,7 @@ export function ManuscriptSheet({ open, onClose }: Props) {
             Close
           </button>
         </div>
-        <div className="sheet-content" tabIndex={0} aria-label="Manuscript text">
+        <div className="sheet-content" tabIndex={0} role="region" aria-label="Manuscript text">
           <p className="sheet-dek">
             An Analytical Inquiry into Surrender, Sensory Immersion, and Psychological Traps within the Ethiopian Orthodox
             Tewahedo Tradition
@@ -110,9 +114,9 @@ export function ManuscriptSheet({ open, onClose }: Props) {
           <p><strong>Looking outside instead of within:</strong> Many believers project all the holiness onto external symbols, icons, or historical texts, acting as if God is a distant figure locked inside a book or a building. Just like the engineer who thought life was inside the machine’s words rather than recognizing his own awareness, dogmatic believers forget Christ’s own direct words: “The Kingdom of God is within you,” and “Be still, and know that I am God.”</p>
 
           <h3>Comparative Analytical Framework</h3>
-          <div className="sheet-table-wrap">
+          <div className="sheet-table-wrap" tabIndex={0} role="region" aria-labelledby="sheet-table-caption">
             <table className="sheet-table">
-              <caption>Contrasting the transformative experiential core of Tewahedo tradition against dogmatic or conditioned pitfalls.</caption>
+              <caption id="sheet-table-caption">Contrasting the transformative experiential core of Tewahedo tradition against dogmatic or conditioned pitfalls.</caption>
               <thead>
                 <tr>
                   <th scope="col">Dimension</th>

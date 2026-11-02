@@ -150,11 +150,14 @@ vec2 mapScene(vec3 P) {
   // Carved cross in the apse.
   float dCross = 1e5;
   if (P.z < -7150.0) {
-    vec3 cp = P - vec3(0.0, 230.0, -7365.0);
-    float vBar = max(abs(cp.x) - 26.0, max(abs(cp.y) - 150.0, abs(cp.z) - 22.0));
-    float hBar = max(abs(cp.x) - 125.0, max(abs(cp.y - 30.0) - 26.0, abs(cp.z) - 22.0));
-    float ring = max(abs(length(cp.xy - vec2(0.0, 30.0)) - 72.0) - 11.0, abs(cp.z) - 18.0);
-    dCross = min(min(vBar, hBar), ring);
+    // Equal-armed cross with flared, stepped ends, as cut into Lalibela's walls.
+    vec3 cp = P - vec3(0.0, 250.0, -7365.0);
+    vec2 a = abs(cp.xy);
+    vec2 q = (a.x > a.y) ? a : a.yx;                       // fold to one arm along +x
+    float arm = max(q.x - 120.0, q.y - (22.0 + q.x * 0.12));
+    float foot = max(abs(q.x - 112.0) - 12.0, q.y - 44.0);
+    float slab = abs(cp.z) - 20.0;
+    dCross = max(min(arm, foot), slab);
   }
 
   float dSolid = smin(dWorldRock, dFloor, 26.0);
@@ -216,8 +219,8 @@ const vec3 SUN_DIR = vec3(-0.5513, 0.6214, 0.5567);
 
 vec3 renderSky(vec3 rd) {
   float elev = clamp(rd.y, 0.0, 1.0);
-  vec3 zenith = mix(vec3(0.10, 0.17, 0.30), vec3(0.30, 0.47, 0.70), uVellum);
-  vec3 horiz  = mix(vec3(0.78, 0.50, 0.30), vec3(0.93, 0.84, 0.70), uVellum);
+  vec3 zenith = mix(vec3(0.16, 0.30, 0.52), vec3(0.30, 0.47, 0.70), uVellum);
+  vec3 horiz  = mix(vec3(0.74, 0.62, 0.50), vec3(0.93, 0.84, 0.70), uVellum);
   vec3 col = mix(horiz, zenith, pow(elev, 0.52));
   float sunDot = max(0.0, dot(rd, SUN_DIR));
   col += vec3(1.0, 0.72, 0.36) * pow(sunDot, 12.0) * 0.75;
@@ -302,7 +305,7 @@ vec3 shadeSurface(vec3 P, vec3 N, vec3 V, float matId, float t, float isReflecti
   float sunShadow = (outsideBlend > 0.02 && isReflection < 0.5)
     ? calcSoftShadow(P + N * 3.5, SUN_DIR, 12.0, 780.0, 10.0)
     : 0.45;
-  vec3 sunCol = mix(vec3(1.38, 0.94, 0.56), vec3(1.25, 1.08, 0.88), uVellum);
+  vec3 sunCol = mix(vec3(1.5, 1.12, 0.78), vec3(1.25, 1.08, 0.88), uVellum);
   vec3 skyAmb = mix(vec3(0.26, 0.22, 0.21), vec3(0.52, 0.46, 0.40), uVellum);
   vec3 extLight = skyAmb * (0.5 + 0.5 * bumpedN.y) + sunCol * sunDiff * sunShadow;
 
@@ -392,7 +395,7 @@ void main() {
   vec3 ro = vec3(uCamPos.x, uCamPos.y, uCamPos.z);
   vec3 localRay = normalize(vec3(vNDC.x * uAspectFov.x, vNDC.y * uAspectFov.y, -1.0));
 
-  float cr = cos(uCamAngles.z), sr = sin(uCamAngles.z);
+  float cr = cos(-uCamAngles.z), sr = sin(-uCamAngles.z);
   vec3 r0 = vec3(localRay.x * cr - localRay.y * sr, localRay.x * sr + localRay.y * cr, localRay.z);
   float cp = cos(-uCamAngles.y), sp = sin(-uCamAngles.y);
   vec3 r1 = vec3(r0.x, r0.y * cp + r0.z * sp, -r0.y * sp + r0.z * cp);
@@ -442,7 +445,7 @@ void main() {
     }
 
     float fogAmt = 1.0 - exp(-t * 0.00038);
-    vec3 extFog = mix(vec3(0.62, 0.40, 0.25), vec3(0.88, 0.80, 0.68), uVellum);
+    vec3 extFog = mix(vec3(0.62, 0.52, 0.44), vec3(0.88, 0.80, 0.68), uVellum);
     vec3 cavFog = mix(vec3(0.035, 0.024, 0.018), vec3(0.76, 0.68, 0.56), uVellum);
     if (uTrap > 0.5) cavFog = vec3(0.06, 0.022, 0.016);
     vec3 fogCol = mix(cavFog, extFog, smoothstep(-780.0, -320.0, ro.z));
@@ -484,9 +487,9 @@ void main() {
   p.x += sin(uTime * 1.2 + aPhase) * 24.0;
   p.z += cos(uTime * 1.0 + aPhase) * 18.0;
   vec3 d = p - uCamPos;
-  float cy = cos(-uCamAngles.x), sy = sin(-uCamAngles.x);
+  float cy = cos(uCamAngles.x), sy = sin(uCamAngles.x);
   vec3 r1 = vec3(d.x * cy + d.z * sy, d.y, -d.x * sy + d.z * cy);
-  float cp = cos(-uCamAngles.y), sp = sin(-uCamAngles.y);
+  float cp = cos(uCamAngles.y), sp = sin(uCamAngles.y);
   vec3 r2 = vec3(r1.x, r1.y * cp - r1.z * sp, r1.y * sp + r1.z * cp);
   float cr = cos(-uCamAngles.z), sr = sin(-uCamAngles.z);
   vec3 eye = vec3(r2.x * cr - r2.y * sr, r2.x * sr + r2.y * cr, r2.z);

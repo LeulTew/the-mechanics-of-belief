@@ -31,7 +31,7 @@ export const ACTS: Act[] = [
         headline: 'A person can know every doctrine and still never pause within.',
         lead: 'You can memorize every prayer, follow every fast, and attend every liturgy while remaining trapped inside the noisy commentary of your own mind.',
         textPos: 'pos-left',
-        cam: { x: -15, y: -12, z: 380, yaw: -7, pitch: 7, roll: 0 }
+        cam: { x: 40, y: -12, z: 380, yaw: -5, pitch: 2, roll: 0 }
       },
       {
         label: 'The Open Threshold',

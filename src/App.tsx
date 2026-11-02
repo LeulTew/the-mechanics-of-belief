@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ACTS, progressFor } from './data/acts.ts'
+import { progressFor } from './data/acts.ts'
 import { SanctuaryEngine } from './engine/SanctuaryEngine.ts'
 import { useZema } from './engine/zema.ts'
 import { Masthead } from './components/Masthead.tsx'
@@ -67,8 +67,6 @@ export function App() {
   const closeSheet = useCallback(() => setSheetOpen(false), [])
   const toggleVellum = useCallback(() => setVellum((v) => !v), [])
 
-  const act = ACTS[beat.act]
-
   return (
     <>
       <a className="skip-link" href="#film-timeline">
@@ -85,7 +83,7 @@ export function App() {
         onHome={() => scrollToProgress(0)}
       />
 
-      <main id="viewport" ref={viewportRef} className={act.trap ? 'theme-trap' : undefined}>
+      <main id="viewport" ref={viewportRef}>
         <canvas id="canvas-3d-world" ref={canvasRef} aria-hidden="true" />
 
         <div id="camera-rig-3d" ref={rigRef}>
