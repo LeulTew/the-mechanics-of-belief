@@ -8,12 +8,16 @@ import { LensControls } from './components/LensControls.tsx'
 import { FilmTimeline } from './components/FilmTimeline.tsx'
 import { ManuscriptSheet } from './components/ManuscriptSheet.tsx'
 import { Shrines } from './components/Shrines.tsx'
+import { Reading } from './components/Reading.tsx'
+import { Intro } from './components/Intro.tsx'
+import { ScrollCue } from './components/ScrollCue.tsx'
 
 const reducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function scrollToProgress(p: number) {
-  const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+  const runway = document.getElementById('scroll-runway')
+  const max = Math.max(1, (runway ? runway.offsetHeight : document.documentElement.scrollHeight) - window.innerHeight)
   window.scrollTo({ top: p * max, behavior: reducedMotion ? 'auto' : 'smooth' })
 }
 
@@ -22,6 +26,8 @@ export function App() {
   const [vellum, setVellum] = useState(false)
   const [macro, setMacro] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [onPaper, setOnPaper] = useState(false)
   const zema = useZema()
 
   const viewportRef = useRef<HTMLElement>(null)
@@ -44,6 +50,8 @@ export function App() {
       },
       {
         reducedMotion,
+        onReady: () => setReady(true),
+        onPaper: setOnPaper,
         onBeat: (act, b) => setBeat((prev) => (prev.act === act && prev.beat === b ? prev : { act, beat: b }))
       }
     )
@@ -60,6 +68,10 @@ export function App() {
     document.body.classList.toggle('theme-vellum', vellum)
   }, [vellum])
 
+  useEffect(() => {
+    document.body.classList.toggle('on-paper', onPaper)
+  }, [onPaper])
+
   useEffect(() => engine.current?.setMacro(macro), [macro])
   useEffect(() => engine.current?.setPaused(sheetOpen), [sheetOpen])
 
@@ -73,7 +85,10 @@ export function App() {
         Skip to chapters
       </a>
 
+      <Intro ready={ready} reducedMotion={reducedMotion} />
+
       <Masthead
+        onPaper={onPaper}
         vellum={vellum}
         onToggleVellum={toggleVellum}
         zema={zema.playing}
@@ -110,10 +125,20 @@ export function App() {
           onToggleZema={zema.toggle}
         />
 
+        <ScrollCue
+          act={beat.act}
+          beat={beat.beat}
+          onActivate={() =>
+            beat.act === 7 ? document.getElementById('manuscript')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }) : scrollToProgress(progressFor(0, 1))
+          }
+        />
+
         <FilmTimeline act={beat.act} progressRef={progressRef} onSelectAct={(i) => scrollToProgress(progressFor(i))} />
       </main>
 
       <div id="scroll-runway" aria-hidden="true" />
+
+      <Reading reducedMotion={reducedMotion} onHome={() => scrollToProgress(0)} />
 
       <ManuscriptSheet open={sheetOpen} onClose={closeSheet} />
     </>

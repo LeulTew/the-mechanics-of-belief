@@ -17,6 +17,10 @@ export interface EngineElements {
 
 export interface EngineOptions {
   onBeat: (act: number, beat: number) => void
+  /** Fires once the rock textures are in (or have failed), so the intro can lift. */
+  onReady: () => void
+  /** True once the closing manuscript has slid up under the masthead. */
+  onPaper: (on: boolean) => void
   reducedMotion: boolean
 }
 
@@ -147,10 +151,24 @@ export class SanctuaryEngine {
 
   private onScroll = () => this.readScroll()
 
+  // Progress covers the runway only; the manuscript below it is ordinary page.
   private readScroll() {
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+    const runway = document.getElementById('scroll-runway')
+    const end = runway ? runway.offsetHeight : document.documentElement.scrollHeight
+    const max = Math.max(1, end - window.innerHeight)
     this.scroll.target = Math.min(1, Math.max(0, window.scrollY / max))
+    const paper = window.scrollY >= end - 72
+    if (paper !== this.onPaper) {
+      this.onPaper = paper
+      this.opts.onPaper(paper)
+    }
+    // Once the parchment fully covers the viewport nothing behind it needs drawing.
+    this.covered = window.scrollY >= end - 2
+    this.el.viewport.style.visibility = this.covered ? 'hidden' : ''
   }
+
+  private onPaper = false
+  private covered = false
 
   private onPointerDown = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse' || e.button !== 0) return
@@ -238,6 +256,7 @@ export class SanctuaryEngine {
     this.stepScroll(dt)
     this.applyBeat(false)
     this.stepCamera(dt)
+    if (this.covered) return
     this.placeShrines()
 
     if (!this.paused) {
@@ -446,6 +465,7 @@ export class SanctuaryEngine {
     const gl = (canvas.getContext('webgl2', attrs) || canvas.getContext('webgl', attrs)) as WebGLRenderingContext | null
     if (!gl) {
       this.el.viewport.classList.add('no-webgl')
+      queueMicrotask(() => this.opts.onReady())
       return
     }
     this.gl = gl
@@ -497,8 +517,12 @@ export class SanctuaryEngine {
 
     const base = import.meta.env.BASE_URL
     const alive = () => !this.disposed
-    this.texCliff = texture(gl, `${base}textures/cliff.webp`, [118, 62, 46], alive)
-    this.texCavern = texture(gl, `${base}textures/cavern.webp`, [68, 42, 34], alive)
+    let pending = 2
+    const settled = () => {
+      if (--pending === 0) this.opts.onReady()
+    }
+    this.texCliff = texture(gl, `${base}textures/cliff.webp`, [118, 62, 46], alive, settled)
+    this.texCavern = texture(gl, `${base}textures/cavern.webp`, [68, 42, 34], alive, settled)
   }
 }
 
@@ -550,7 +574,7 @@ function uniforms(gl: WebGLRenderingContext, p: WebGLProgram, names: string[]): 
 }
 
 // Starts as a flat tone so the first frame is never black, then swaps in the photo.
-function texture(gl: WebGLRenderingContext, url: string, tone: [number, number, number], alive: () => boolean) {
+function texture(gl: WebGLRenderingContext, url: string, tone: [number, number, number], alive: () => boolean, settled: () => void) {
   const tex = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, tex)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([...tone, 255]))
@@ -560,8 +584,9 @@ function texture(gl: WebGLRenderingContext, url: string, tone: [number, number, 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
   const img = new Image()
   img.decoding = 'async'
+  img.onerror = settled
   img.onload = () => {
-    if (!alive() || gl.isContextLost()) return
+    if (!alive() || gl.isContextLost()) return settled()
     gl.bindTexture(gl.TEXTURE_2D, tex)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
     gl.generateMipmap(gl.TEXTURE_2D)
@@ -572,6 +597,7 @@ function texture(gl: WebGLRenderingContext, url: string, tone: [number, number, 
       const max = gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT) as number
       gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, max))
     }
+    settled()
   }
   img.src = url
   return tex

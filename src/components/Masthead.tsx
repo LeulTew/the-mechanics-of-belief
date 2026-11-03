@@ -1,6 +1,7 @@
 import { LightingButton, ZemaButton } from './Toggles.tsx'
 
 interface Props {
+  onPaper: boolean
   vellum: boolean
   onToggleVellum: () => void
   zema: boolean
@@ -10,7 +11,7 @@ interface Props {
   onHome: () => void
 }
 
-export function Masthead({ vellum, onToggleVellum, zema, onToggleZema, sheetOpen, onOpenSheet, onHome }: Props) {
+export function Masthead({ onPaper, vellum, onToggleVellum, zema, onToggleZema, sheetOpen, onOpenSheet, onHome }: Props) {
   return (
     <header id="masthead">
       <a
@@ -32,13 +33,17 @@ export function Masthead({ vellum, onToggleVellum, zema, onToggleZema, sheetOpen
         <button
           type="button"
           className="masthead-btn"
-          aria-haspopup="dialog"
-          aria-expanded={sheetOpen}
-          onClick={onOpenSheet}
+          aria-haspopup={onPaper ? undefined : 'dialog'}
+          aria-expanded={onPaper ? undefined : sheetOpen}
+          onClick={onPaper ? onHome : onOpenSheet}
         >
-          <span>
-            <span className="desktop-only">Complete </span>Manuscript
-          </span>
+          {onPaper ? (
+            <span>Back to the sanctuary</span>
+          ) : (
+            <span>
+              <span className="desktop-only">Complete </span>Manuscript
+            </span>
+          )}
         </button>
       </div>
     </header>
